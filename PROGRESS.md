@@ -8,8 +8,8 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 ## Where things stand (Nov 10, 2026)
 - **Stage 1 (the pipes), version 0.1.0:** built and tested in headless Chrome with made-up prices (see CHANGELOG). Pages is on (source: GitHub Actions). The first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers, and published the site. **Stage 1 is done:** on a real iPhone (Nov 10, 02:22 UTC), About → Data check said "25 coins, updated 20 minutes ago" and "Live prices: Working," so CoinGecko allows the live check from a real phone browser.
 - **Stage 2 (the forecasting engine), version 0.2.0:** built and tested with made-up prices (see CHANGELOG). Each watchlist row shows its 7-day lean; tapping it opens the forecast (odds, confidence, best guess, likely range on a fan chart, key levels, why, how it works). Edit coins (1 to 10) and a Share button are in. **Stage 2 is done:** on a real iPhone (Nov 10), the forecasts looked right on real prices, and About → Data check showed 25 coins saved, live prices working and settings saving.
-- **Stage 3 (the Track record), version 0.3.0:** built and tested with made-up prices (see CHANGELOG). The Track record tab shows the 90-day replay for all coins and each coin, the record holds confidence down, and Publish works the replay out and adds it to prices.json. **Still to do:** the owner's iPhone check on the live site (Track record tab, About → Data check, VoiceOver). Until then it has only been seen on made-up prices.
-- **Stage 4 (Worth a look), version 0.4.0:** built and tested with made-up prices (see CHANGELOG). The Worth a look tab names up to 3 coins, out of all 25, whose leans stand out, or says "Nothing stands out today" and why. A forecast opened from it has an "Add to my coins" button when the coin isn't on the watchlist. **Still to do:** the owner's iPhone check on the live site (the Worth a look tab, adding a coin from a forecast, VoiceOver), together with the stage 3 check.
+- **Stage 3 (the Track record), version 0.3.0:** built and tested with made-up prices (see CHANGELOG). The Track record tab shows the 90-day replay for all coins and each coin, the record holds confidence down, and Publish works the replay out and adds it to prices.json. **Checked on a real iPhone (Nov 10):** the owner went through the live site at version 0.4.0 (About and Data check, Worth a look, Track record, VoiceOver) and reported everything looked good.
+- **Stage 4 (Worth a look), version 0.4.0:** built and tested with made-up prices (see CHANGELOG). The Worth a look tab names up to 3 coins, out of all 25, whose leans stand out, or says "Nothing stands out today" and why. A forecast opened from it has an "Add to my coins" button when the coin isn't on the watchlist. **Checked on a real iPhone (Nov 10):** the owner went through the live site at version 0.4.0 (About and Data check, Worth a look, Track record, VoiceOver) and reported everything looked good. Not noted: whether a pick was on screen that day, so the Add to my coins button may still be unseen on a real phone.
 - Stage 5 not started.
 
 ## Where it lives
@@ -24,8 +24,8 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 2. ~~Update the app skills~~ with what stage 1 proved (done: app-new-project has "Live outside data", with Best Guess as the reference).
 3. ~~Org security settings~~ on bestguess-apps and the Usage Saver org (done Nov 2026).
 4. ~~Stage 2, the forecasting engine~~ (done Nov 10, version 0.2.0, checked on a real iPhone).
-5. ~~Stage 3, Track record~~ (built Nov 10, version 0.3.0). **Waiting on the owner's iPhone check** of the live site.
-6. ~~Stage 4, Worth a look~~ (built Nov 10, version 0.4.0). **Waiting on the owner's iPhone check** of the live site.
+5. ~~Stage 3, Track record~~ (done Nov 10, version 0.3.0, checked on a real iPhone).
+6. ~~Stage 4, Worth a look~~ (done Nov 10, version 0.4.0, checked on a real iPhone).
 7. **Stage 5, first release:** self-test page (`#st-go`, `#st-sum`), toolkit release check, accessibility check, security release check, CHANGELOG, then the iPhone self-test and VoiceOver run.
 
 ## Ground rules
