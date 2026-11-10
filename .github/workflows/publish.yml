@@ -27,10 +27,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check the app and the fetcher
+      - name: Check the app, the engine and the fetcher
         run: |
           set -euo pipefail
           python3 rebuild.py --check
+          node --test test_engine.mjs
           python3 test_fetch_prices.py
 
       - name: Get the last published prices

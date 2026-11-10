@@ -1,5 +1,15 @@
 # Best Guess: changelog
 
+## 0.2.0 (Nov 10, 2026)
+- Each coin on your watchlist now shows its 7-day lean: up, down or "coin flip", with odds and a confidence level. Tap a coin for its full forecast: a best guess for a week from now, a likely price range on a small chart, the prices it keeps turning at (floors and ceilings), and the reasons in plain words.
+- Best Guess's own engine makes the forecasts. It finds the 50 moments in the past year, across all the coins it follows, that looked most like today, and checks where prices were 7 days later. Odds stay close to 50-50 unless those look-alikes clearly agree, so most days the honest answer is "coin flip."
+- Forecast prices are rounded (like $96,500), so they don't look more exact than they are.
+- Edit coins: pick 1 to 10 coins from the top coins. Your picks save on this device.
+- A Share button sends the official link, with nothing about you attached.
+- About explains how the odds work.
+- Fixes: a message at the bottom of the screen no longer blocks taps on what's under it, and coin names no longer get squeezed on small phones with extra large text.
+- Tested: 11 engine tests passed on made-up markets, and 5 of 5 planted bugs were caught (seeing the future, an off-by-one, swapped floors and ceilings, a missing flat-price check, a weighting slip). Honesty checks: on 30 made-up markets with no real pattern, leans were right 49.5% of the time (a coin flip, as they should be) and High confidence almost never showed; with a planted pattern, Medium calls were right 72% of the time; the likely range held the real price 7 days later about 8 times in 10, as promised. Changing every price after a replay day changed nothing, so replays can't see the future. 54 browser checks passed in headless Chrome with made-up prices: forecasts on every row and sheet (live and saved prices, live prices failing, offline through the service worker), the fan chart and its text version, best guess inside the range and agreeing with the lean, coins with short, flat or missing history, a hostile coin name (plain text, nothing ran), Edit coins (up to 10, at least 1, saved after reopening, focus and Tab), Share with and without a share sheet, 0.1.0 saved data, damaged, wrong and newer price files, newer saved data left alone, tabs and About, no sideways scrolling or squeezed names at 320px with extra large text, no privacy-lock blocks, and 10 forecasts in under a second on a CPU slowed 6 times. The accessibility checker found nothing on 5 screens (main, a forecast, a coin with no forecast, Edit coins, About) at 4 sizes in light and dark. Contrast computed for 15 new color pairs in both themes; all pass. 21 fetcher tests still pass. Not yet checked on real prices or a real iPhone (see PROGRESS.md).
+
 ## 0.1.0 (Nov 9, 2026)
 - First version, for testing the plumbing (stage 1). Not shared yet.
 - Today shows your watchlist (the top 5 coins to start) with each coin's price and how it moved in the last 24 hours. Prices come from this website, refreshed about every 6 hours, plus a live check with CoinGecko each time you open it.

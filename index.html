@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-bbPqyd5GoDkFz3+uXXIVPTCv6euMkAzRPbqBTUm4OIs='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2RAG3pufvcH5hpRNtaWLzIVGk/erR0KMwb2nUXkLNys=' 'sha256-osrqGCzNE7ix94dA9pF3rGdcmhocFj9NRIQ0EKZUYmg='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Free, private crypto odds with honest confidence levels and a track record. Not financial advice.">
 <meta name="theme-color" content="#F2F1F7" media="(prefers-color-scheme: light)">
@@ -111,8 +111,36 @@ h2 { font-family: var(--f-display); font-weight: 600; font-size: 1.125rem; margi
 .muted { color: var(--muted); font-size: 0.9375rem; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 
+.panelhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.panelhead h2 { margin: 0; }
+.panelhead .ghost { align-self: center; }
 .coins { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.coin { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+/* Each coin is one button: badge, name, price and 24-hour move, then its 7-day lean underneath */
+.coin { appearance: none; position: relative; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "badge main nums chev" "badge lean lean chev"; align-items: center; column-gap: 12px; row-gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 10px 12px 14px; min-height: 44px; }
+.coin:hover { border-color: var(--accent); }
+.coin:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.coin > .cmain, .coin > .cnums, .coin > .lean, .cmain > span, .cnums > span { display: block; }
+.coin .badge { grid-area: badge; }
+.coin .cmain { grid-area: main; }
+.coin .cnums { grid-area: nums; }
+.chev { grid-area: chev; width: 18px; height: 18px; color: var(--muted); }
+.lean { grid-area: lean; font-size: 0.875rem; font-weight: 700; }
+/* Narrow screens or bigger text: the price moves under the name so names never get squeezed */
+@media (max-width: 340px) {
+  .coin { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "badge main chev" "badge nums chev" "badge lean chev"; }
+  .coin .cnums { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; text-align: left; }
+}
+@media (max-width: 400px) {
+  html[data-size="lg"] .coin, html[data-size="xl"] .coin { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "badge main chev" "badge nums chev" "badge lean chev"; }
+  html[data-size="lg"] .coin .cnums, html[data-size="xl"] .coin .cnums { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; text-align: left; }
+}
+@media (max-width: 480px) {
+  html[data-size="xl"] .coin { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "badge main chev" "badge nums chev" "badge lean chev"; }
+  html[data-size="xl"] .coin .cnums { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; text-align: left; }
+}
+.lean.up { color: var(--up); }
+.lean.down { color: var(--down); }
+.lean.flip, .lean.none { color: var(--muted); }
 .badge { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--badge-bg); color: var(--badge-ink); font: 800 0.75rem/1 var(--f-display); letter-spacing: 0.02em; overflow: hidden; }
 .cname { font-weight: 700; overflow-wrap: anywhere; }
 .csym { color: var(--muted); font-size: 0.875rem; }
@@ -122,6 +150,39 @@ h2 { font-family: var(--f-display); font-weight: 600; font-size: 1.125rem; margi
 .chg.up { color: var(--up); }
 .chg.down { color: var(--down); }
 .chg.flat { color: var(--muted); }
+
+/* A coin's forecast sheet */
+.coinbody { display: flex; flex-direction: column; gap: 12px; }
+.coinbody > * { flex-shrink: 0; }
+.leanbox { background: var(--field); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.leanbig { font-family: var(--f-display); font-weight: 800; font-size: 1.375rem; line-height: 1.2; }
+.leanbig.up { color: var(--up); }
+.leanbig.down { color: var(--down); }
+.leanbox .conf { color: var(--muted); }
+.nums { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: 8px; }
+.nums div { background: var(--field); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.nums dt { font-size: 0.875rem; color: var(--muted); }
+.nums dd { margin: 2px 0 0; font-family: var(--f-num); font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.fan { display: block; width: 100%; height: auto; }
+.fan .b1 { fill: var(--accent); fill-opacity: 0.14; }
+.fan .b2 { fill: var(--accent); fill-opacity: 0.3; }
+.fan .hist { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.fan .mid { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: 5 4; stroke-linecap: round; }
+.fan .now { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.fan text { fill: var(--muted); font-family: var(--f-body); font-size: 12px; }
+.advice { background: var(--warn-bg); border-radius: 10px; padding: 10px 12px; }
+
+/* Picking coins */
+.count { font-weight: 700; }
+.picks { border: 0; margin: 0; padding: 0; min-width: 0; }
+#watchList { display: flex; flex-direction: column; gap: 6px; }
+.pick { position: relative; display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; gap: 12px; min-height: 52px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.pick:has(input:checked) { border-color: var(--accent); background: var(--field); }
+.pick input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
+.pick input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pick .badge { width: 2.25rem; height: 2.25rem; font-size: 0.6875rem; }
+.pick .pname { font-weight: 700; overflow-wrap: anywhere; }
+.pick .csym { display: block; font-weight: 400; }
 
 .primary { appearance: none; border: 0; background: var(--accent); color: var(--on-accent); font: 700 1rem/1.2 var(--f-body); border-radius: 10px; padding: 12px 18px; min-height: 44px; cursor: pointer; }
 .primary:hover { filter: brightness(1.08); }
@@ -170,6 +231,7 @@ body.sheet-open { overflow: hidden; }
   border-radius: 14px; padding: 14px 16px;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
   font-size: 0.9375rem;
+  pointer-events: none; /* never blocks a tap on what's underneath */
 }
 .toast:empty { display: none; }
 @media (prefers-reduced-motion: no-preference) {
@@ -186,8 +248,9 @@ body.sheet-open { overflow: hidden; }
       <p class="tagline">Free crypto odds, honestly.</p>
     </div>
     <div class="tools">
+      <button class="iconbtn" type="button" id="shareBtn" aria-label="Share Best Guess" data-share><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M8 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2"/></svg></button>
       <button class="iconbtn" type="button" id="sizeBtn" aria-label="Text size: normal. Tap to change.">A</button>
-      <button class="iconbtn" type="button" id="aboutBtn" aria-label="About Best Guess" data-open="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r="0.6" fill="currentColor"/></svg></button>
+      <button class="iconbtn" type="button" id="aboutBtn" aria-label="About Best Guess" data-open="aboutSheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r="0.6" fill="currentColor"/></svg></button>
     </div>
   </header>
 
@@ -203,9 +266,12 @@ body.sheet-open { overflow: hidden; }
   </nav>
 
   <section class="panel" id="view-today" role="tabpanel" aria-labelledby="tab-today">
-    <h2>Your watchlist</h2>
+    <div class="panelhead">
+      <h2>Your watchlist</h2>
+      <button class="ghost" type="button" id="editBtn" data-open="watchSheet">Edit coins</button>
+    </div>
     <div id="todayBody"><p class="muted">Loading prices…</p></div>
-    <p class="muted">Each coin's 7-day forecast (odds, a likely price range and key levels) is coming in the next update. For now you'll see its price and how it moved in the last 24 hours.</p>
+    <p class="muted">Tap a coin for its 7-day forecast: the odds, a likely price range and key levels. Not financial advice.</p>
   </section>
 
   <section class="panel" id="view-look" role="tabpanel" aria-labelledby="tab-look" hidden>
@@ -233,6 +299,10 @@ body.sheet-open { overflow: hidden; }
   <h3>Not financial advice</h3>
   <p>Its odds are a best guess from past prices. Past prices can't promise what comes next, and crypto can drop fast. Never put in money you can't afford to lose.</p>
 
+  <h3>How the odds work</h3>
+  <p>For each coin, Best Guess sizes up today's setup: the price against its 20- and 50-day averages, how far it moved in the last 7 and 30 days, how much it's swinging, and where it sits in its 30-day range. Then it finds the 50 moments in the past year, across all the coins it follows, that looked most like that, and checks where each price was 7 days later.</p>
+  <p>Odds stay close to 50-50 unless those look-alikes clearly agree. Under 55% either way, it says "coin flip", and most days that's the honest answer. Confidence (low, medium or high) depends on how strongly they agree and how many different weeks they came from. Coins tend to move together, so ten coins on the same day count as one example.</p>
+
   <h3>Your privacy</h3>
   <ul>
     <li>Your watchlist and settings save on this device only. Nothing about you is sent anywhere.</li>
@@ -252,6 +322,10 @@ body.sheet-open { overflow: hidden; }
   <p>On iPhone or iPad: open this page in Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>. It works offline too, with the last prices it saw. Your watchlist there is separate from Safari's.</p>
   <button class="primary" type="button" id="installBtn" hidden>Install Best Guess</button>
 
+  <h3>Share it</h3>
+  <p>Know someone who'd like it? Send them the link. Nothing about you goes with it.</p>
+  <button class="ghost" type="button" data-share>Share Best Guess</button>
+
   <h3>Where it comes from</h3>
   <p>Price data from <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer">CoinGecko</a>. Best Guess isn't affiliated with CoinGecko.</p>
   <p>The official site is <a href="https://bestguess-apps.github.io/best-guess/" target="_blank" rel="noopener noreferrer">bestguess-apps.github.io/best-guess</a>. Its code is public, so anyone can check what it does: <a href="https://github.com/bestguess-apps/best-guess" target="_blank" rel="noopener noreferrer">github.com/bestguess-apps/best-guess</a>.</p>
@@ -259,13 +333,258 @@ body.sheet-open { overflow: hidden; }
   <button class="ghost" type="button" data-close>Close</button>
 </section>
 
+<section class="sheet" id="coinSheet" role="dialog" aria-modal="true" aria-labelledby="coinTitle" tabindex="-1" hidden>
+  <div class="sheethead">
+    <h2 id="coinTitle">Forecast</h2>
+    <button class="iconbtn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="coinbody" id="coinBody"></div>
+  <p class="advice"><b>Not financial advice.</b> Past prices can't promise what comes next, and crypto can drop fast. Never put in money you can't afford to lose.</p>
+  <button class="ghost" type="button" data-close>Close</button>
+</section>
+
+<section class="sheet" id="watchSheet" role="dialog" aria-modal="true" aria-labelledby="watchTitle" tabindex="-1" hidden>
+  <div class="sheethead">
+    <h2 id="watchTitle">Your coins</h2>
+    <button class="iconbtn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <p>Pick up to 10 from the top coins. Your picks save on this device.</p>
+  <p class="count" id="watchCount" role="status" aria-live="polite"></p>
+  <fieldset class="picks" id="watchPicks">
+    <legend class="sr">Coins to watch</legend>
+    <div id="watchList"></div>
+  </fieldset>
+  <p class="muted" id="watchSave"></p>
+  <button class="primary" type="button" data-close>Done</button>
+</section>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script>
+// ==== Best Guess engine ====
+// Plain functions: values in, values out. No screen, no storage, no network.
+// test_engine.mjs loads this block straight from index.html and tests it with node --test.
+const BestGuessEngine = (() => {
+  "use strict";
+  const AHEAD = 7;          // days ahead each forecast looks
+  const LONG = 50;          // longest average used, in days
+  const MIN_DAYS = 60;      // daily prices a coin needs before it gets a forecast
+  const LOOKALIKES = 50;    // closest past setups used for each forecast
+  const PRIOR = 40;         // pull toward 50-50, counted in look-alikes (a lean needs strong agreement)
+  const MIN_LIBRARY = 200;  // past setups needed before forecasting at all
+  const LEVEL_DAYS = 120;   // key levels come from the last 4 months
+  const PIVOT = 3;          // a turn counts when it's the highest or lowest for 3 days each side
+  const MIN_VOL = 1e-4;     // daily swings under 0.01% count as flat
+  const MAX_Y = 20;         // caps one look-alike's 7-day move, in daily swings
+  const QS = [0.1, 0.25, 0.5, 0.75, 0.9];
+  const DAY_MS = 86400000;
+
+  function dayNum(iso) { return Math.floor(Date.parse(iso + "T00:00:00Z") / DAY_MS); }
+
+  // How much the price swings day to day: the spread of daily log moves from index `from` to `to`
+  function swingSize(px, from, to) {
+    const n = to - from + 1;
+    let m = 0, v = 0;
+    for (let k = from; k <= to; k++) m += Math.log(px[k] / px[k - 1]);
+    m /= n;
+    for (let k = from; k <= to; k++) { const d = Math.log(px[k] / px[k - 1]) - m; v += d * d; }
+    return Math.sqrt(v / (n - 1));
+  }
+
+  // The setup at index i of a price list (px[i] is "now"): raw numbers to explain it, and
+  // scale-free numbers (f) to compare it with other coins and other days. null if too short or flat.
+  function setupAt(px, i) {
+    if (!(Number.isInteger(i) && i >= LONG && i < px.length)) return null;
+    const p = px[i];
+    const vol = swingSize(px, i - 19, i);
+    const volLong = swingSize(px, i - LONG + 1, i);
+    if (!(vol >= MIN_VOL) || !(volLong >= MIN_VOL)) return null;
+    let a20 = 0, a50 = 0, hi = -Infinity, lo = Infinity;
+    for (let k = i - LONG + 1; k <= i; k++) {
+      a50 += px[k];
+      if (k > i - 20) a20 += px[k];
+      if (k > i - 30) { if (px[k] > hi) hi = px[k]; if (px[k] < lo) lo = px[k]; }
+    }
+    a20 /= 20; a50 /= LONG;
+    const raw = {
+      vs20: p / a20 - 1, vs50: p / a50 - 1,
+      move7: p / px[i - 7] - 1, move30: p / px[i - 30] - 1,
+      swing: vol / volLong,
+      place30: hi > lo ? (p - lo) / (hi - lo) : 0.5,
+    };
+    const f = [
+      Math.log(p / a20) / vol, Math.log(p / a50) / vol,
+      Math.log(p / px[i - 7]) / vol, Math.log(p / px[i - 30]) / vol,
+      Math.log(raw.swing), raw.place30,
+    ];
+    return { vol, raw, f };
+  }
+
+  // Every past setup from every coin, with what happened 7 days later (in daily swings)
+  function buildLibrary(coins) {
+    const samples = [];
+    for (const c of coins || []) {
+      const d = c && c.daily;
+      if (!d || !Array.isArray(d.closes)) continue;
+      const start = dayNum(d.start);
+      if (!Number.isFinite(start)) continue;
+      const px = d.closes;
+      for (let i = LONG; i + AHEAD < px.length; i++) {
+        const s = setupAt(px, i);
+        if (!s) continue;
+        const y = Math.log(px[i + AHEAD] / px[i]) / s.vol;
+        samples.push({ coin: c.id, day: start + i, f: s.f, y: Math.max(-MAX_Y, Math.min(MAX_Y, y)) });
+      }
+    }
+    return samples;
+  }
+
+  // Only setups whose 7 days had finished by asOfDay, so a replay never sees the future
+  function prepare(samples, asOfDay) {
+    const use = (samples || []).filter((s) => s.day + AHEAD <= asOfDay);
+    if (use.length < MIN_LIBRARY) return { ok: false, reason: "few-examples", count: use.length };
+    const nf = use[0].f.length, mean = new Array(nf).fill(0), sd = new Array(nf).fill(0);
+    for (const s of use) for (let j = 0; j < nf; j++) mean[j] += s.f[j];
+    for (let j = 0; j < nf; j++) mean[j] /= use.length;
+    for (const s of use) for (let j = 0; j < nf; j++) sd[j] += (s.f[j] - mean[j]) ** 2;
+    for (let j = 0; j < nf; j++) sd[j] = Math.sqrt(sd[j] / use.length) || 1;
+    const z = use.map((s) => s.f.map((x, j) => (x - mean[j]) / sd[j]));
+    // General swings with no direction: every past 7-day move, shifted so about half went up
+    const ys = Float64Array.from(use, (s) => s.y).sort();
+    const h = ys.length >> 1;
+    const mid = ys.length % 2 ? ys[h] : (ys[h - 1] + ys[h]) / 2;
+    const general = ys.map((y) => y - mid);
+    let generalUp = 0;
+    for (const y of general) if (y > 0) generalUp++;
+    return { ok: true, asOfDay, use, z, mean, sd, general, generalUp };
+  }
+
+  // Weighted quantiles of look-alikes (sorted by y, each with its own weight) mixed with general swings
+  function mixQuantiles(near, general, gw, total) {
+    const out = [];
+    let i = 0, j = 0, cum = 0, qi = 0;
+    while (qi < QS.length && (i < near.length || j < general.length)) {
+      let y;
+      if (j >= general.length || (i < near.length && near[i].y <= general[j])) { y = near[i].y; cum += near[i].w; i++; }
+      else { y = general[j]; cum += gw; j++; }
+      while (qi < QS.length && cum >= QS[qi] * total - 1e-9) { out.push(y); qi++; }
+    }
+    while (out.length < QS.length) out.push(out.length ? out[out.length - 1] : 0);
+    return out;
+  }
+
+  function forecast(prep, setup) {
+    if (!prep || !prep.ok) return { ok: false, reason: "few-examples" };
+    const { use, z, mean, sd, general, generalUp } = prep;
+    const q = setup.f.map((x, j) => (x - mean[j]) / sd[j]);
+    const n = use.length, dist = new Float64Array(n);
+    for (let k = 0; k < n; k++) {
+      const zk = z[k];
+      let d = 0;
+      for (let j = 0; j < q.length; j++) { const e = zk[j] - q[j]; d += e * e; }
+      dist[k] = Math.sqrt(d);
+    }
+    const want = Math.min(LOOKALIKES, n);
+    const cut = dist.slice().sort()[want - 1];
+    const picked = [];
+    for (let k = 0; k < n; k++) if (dist[k] < cut) picked.push(k);
+    for (let k = 0; k < n && picked.length < want; k++) if (dist[k] === cut) picked.push(k);
+    // Closer look-alikes count more: weight 1 for an exact match, down to 0.4 at the edge
+    let sumW = 0, sumW2 = 0, upW = 0;
+    const near = picked.map((k) => {
+      const w = cut > 0 ? 1 - 0.6 * dist[k] / cut : 1;
+      sumW += w; sumW2 += w * w;
+      if (use[k].y > 0) upW += w;
+      return { y: use[k].y, w, day: use[k].day };
+    });
+    // Coins move together, so look-alikes from overlapping weeks aren't separate examples
+    const days = near.map((x) => x.day).sort((a, b) => a - b);
+    let weeks = 0, edge = -Infinity;
+    for (const d of days) if (d >= edge) { weeks++; edge = d + AHEAD; }
+    const nEff = Math.min((sumW * sumW) / sumW2, weeks);
+    // Mix look-alikes (worth nEff) with general swings (worth PRIOR), so thin evidence stays near 50-50
+    const scale = nEff / sumW, gw = PRIOR / general.length, total = nEff + PRIOR;
+    for (const x of near) x.w *= scale;
+    near.sort((a, b) => a.y - b.y);
+    const pUp = (upW * scale + generalUp * gw) / total;
+    const odds = Math.round(pUp * 100);
+    const lean = odds >= 55 ? "up" : odds <= 45 ? "down" : "flip";
+    // How clearly the look-alikes alone lean, in standard errors away from 50-50
+    const strength = Math.abs(upW / sumW - 0.5) * 2 * Math.sqrt(nEff);
+    const confidence = lean === "flip" ? "none"
+      : strength >= 2.8 && nEff >= 15 ? "high"
+      : strength >= 2.0 && nEff >= 8 ? "medium" : "low";
+    return {
+      ok: true, pUp, odds, lean, confidence, strength,
+      lookalikes: near.length, weeks, nEff,
+      q: mixQuantiles(near, general, gw, total),
+    };
+  }
+
+  // Prices it keeps turning at: turning points in the last 4 months, grouped when they're close together
+  function keyLevels(closes, price, vol) {
+    const px = closes.slice(-LEVEL_DAYS);
+    const pts = [];
+    for (let j = PIVOT; j < px.length - PIVOT; j++) {
+      let top = true, bottom = true;
+      for (let k = j - PIVOT; k <= j + PIVOT; k++) {
+        if (k === j) continue;
+        if (px[k] >= px[j]) top = false;
+        if (px[k] <= px[j]) bottom = false;
+      }
+      if (top || bottom) pts.push({ lp: Math.log(px[j]), ago: px.length - j });
+    }
+    pts.sort((a, b) => a.lp - b.lp);
+    const band = 2 * Math.max(0.01, 0.6 * vol);
+    const groups = [];
+    for (const p of pts) {
+      const g = groups[groups.length - 1];
+      if (g && p.lp - g.first <= band) { g.sum += p.lp; g.n++; g.ago = Math.min(g.ago, p.ago); }
+      else groups.push({ first: p.lp, sum: p.lp, n: 1, ago: p.ago });
+    }
+    const lv = groups.filter((g) => g.n >= 2).map((g) => {
+      const at = Math.exp(g.sum / g.n);
+      return { price: at, touches: g.n, daysAgo: g.ago, away: at / price - 1 };
+    });
+    return {
+      ceilings: lv.filter((l) => l.price > price).sort((a, b) => a.price - b.price).slice(0, 2),
+      floors: lv.filter((l) => l.price < price).sort((a, b) => b.price - a.price).slice(0, 2),
+      days: px.length,
+    };
+  }
+
+  // The full forecast for one coin: its daily closes (oldest first, last one yesterday) and today's price
+  function forecastCoin(prep, daily, price) {
+    if (!daily || !Array.isArray(daily.closes)) return { ok: false, reason: "no-history" };
+    if (daily.closes.length < MIN_DAYS) return { ok: false, reason: "short-history", days: daily.closes.length };
+    if (!(price > 0)) return { ok: false, reason: "no-price" };
+    const px = daily.closes.concat([price]);
+    const now = setupAt(px, px.length - 1);
+    if (!now) return { ok: false, reason: "flat" };
+    const fc = forecast(prep, now);
+    if (!fc.ok) return fc;
+    const at = (y) => price * Math.exp(y * now.vol);
+    return Object.assign(fc, {
+      price, vol: now.vol, setup: now.raw,
+      low: at(fc.q[0]), best: at(fc.q[2]), high: at(fc.q[4]),
+      levels: keyLevels(daily.closes, price, now.vol),
+    });
+  }
+
+  // Prices for the fan chart d days ahead (0 to 7): the 10%, 25%, 50%, 75% and 90% lines
+  function fanAt(fc, d) {
+    const t = Math.max(0, Math.min(AHEAD, d)) / AHEAD, s = Math.sqrt(t), c = fc.q[2];
+    return fc.q.map((y) => fc.price * Math.exp((c * t + (y - c) * s) * fc.vol));
+  }
+
+  return { AHEAD, LOOKALIKES, MIN_DAYS, LEVEL_DAYS, dayNum, setupAt, buildLibrary, prepare, forecast, forecastCoin, keyLevels, fanAt };
+})();
+</script>
 <script>
 (() => {
   "use strict";
   // ---- settings ----
-  const APP_VERSION = "0.1.0";
+  const APP_VERSION = "0.2.0";
   const LOCAL_KEY = "best-guess-v1";
   const PRICES_URL = "prices.json";
   const LIVE_URL = "https://api.coingecko.com/api/v3/simple/price";
@@ -275,6 +594,9 @@ body.sheet-open { overflow: hidden; }
   const DEFAULT_WATCH = 5;
   const MAX_WATCH = 10;
   const TABS = ["today", "look", "record"];
+  const SHEETS = ["aboutSheet", "coinSheet", "watchSheet"];
+  const SHARE_URL = "https://bestguess-apps.github.io/best-guess/";
+  const DAY_MS = 86400000;
   const SIZES = ["", "lg", "xl"], SIZE_NAMES = ["normal", "large", "extra large"];
   const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
   const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -310,6 +632,10 @@ body.sheet-open { overflow: hidden; }
   const rtf = new Intl.RelativeTimeFormat("en-US", { numeric: "auto" });
   const timeFmt = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
   const dayFmt = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" });
+
+  // Forecasts are rounded to 3 digits and key levels to 4, so they don't look more exact than they are
+  const usdGuess = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumSignificantDigits: 3 });
+  const usdLevel = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumSignificantDigits: 4 });
 
   function fmtUsd(n) { return n >= 1 ? usdBig.format(n) : usdSmall.format(n); }
   function fmtChange(n) {
@@ -510,6 +836,103 @@ body.sheet-open { overflow: hidden; }
     return { price: c.price, change: c.change, live: false };
   }
 
+  // ---- forecasts (the engine is the BestGuessEngine script above) ----
+  const E = BestGuessEngine;
+  let prepared = null, preparedFor = "";
+  const fcCache = new Map();
+  function forecastFor(c) {
+    const price = shown(c).price;
+    try {
+      const key = saved.fetched + ":" + saved.coins.length;
+      if (preparedFor !== key) {
+        prepared = E.prepare(E.buildLibrary(saved.coins), E.dayNum(new Date().toISOString().slice(0, 10)));
+        preparedFor = key;
+        fcCache.clear();
+      }
+      const ck = c.id + ":" + price;
+      if (!fcCache.has(ck)) {
+        if (fcCache.size > 200) fcCache.clear();
+        fcCache.set(ck, E.forecastCoin(prepared, c.daily, price));
+      }
+      return fcCache.get(ck);
+    } catch (e) {
+      return { ok: false, reason: "error" };
+    }
+  }
+  const CONF_WORD = { low: "low confidence", medium: "medium confidence", high: "high confidence" };
+  const CONF_TEXT = {
+    none: "Look-alikes went up about as often as they went down.",
+    low: "Low confidence: the lean is weak, so treat it as a hint.",
+    medium: "Medium confidence: look-alikes lean this way, but not strongly.",
+    high: "High confidence: look-alikes from many different weeks mostly agree.",
+  };
+  const NO_FORECAST = {
+    "no-history": "Its price history didn't load, so there's no forecast for it yet.",
+    "short-history": "It doesn't have enough price history yet. A forecast needs at least 2 months of daily prices.",
+    "flat": "Its price has barely moved lately, so there's nothing to forecast.",
+    "few-examples": "Not enough past prices are loaded to compare with yet. Try again later.",
+    "no-price": "Its price didn't load, so there's no forecast for it yet.",
+    "error": "Something went wrong working out this forecast. Try Refresh, or check again later.",
+  };
+  function leanLine(fc) {
+    if (!fc.ok) return { cls: "none", text: "7-day lean: no forecast yet" };
+    if (fc.lean === "flip") return { cls: "flip", text: "7-day lean: coin flip" };
+    return { cls: fc.lean, text: "7-day lean: " + fc.lean + ", " + (fc.lean === "up" ? fc.odds : 100 - fc.odds) + "% · " + CONF_WORD[fc.confidence] };
+  }
+  function weekOut() { return dayFmt.format(new Date(Date.now() + E.AHEAD * DAY_MS)); }
+  function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+  function vsText(v, n) { return Math.abs(v) < 0.0005 ? "right at its " + n + "-day average" : pct.format(Math.abs(v) * 100) + "% " + (v > 0 ? "above" : "below") + " its " + n + "-day average"; }
+  function moveText(v) { return Math.abs(v) < 0.0005 ? "flat" : (v > 0 ? "up " : "down ") + pct.format(Math.abs(v) * 100) + "%"; }
+  function whyList(s) {
+    return [
+      cap(vsText(s.vs20, 20)) + ", and " + vsText(s.vs50, 50) + ".",
+      cap(moveText(s.move7)) + " over the last 7 days, and " + moveText(s.move30) + " over the last 30.",
+      s.swing > 1.25 ? "Swinging more than usual lately." : s.swing < 0.8 ? "Calmer than usual lately." : "Swinging about as much as usual.",
+      s.place30 >= 0.8 ? "Near the top of its range for the last 30 days." : s.place30 <= 0.2 ? "Near the bottom of its range for the last 30 days." : "In the middle of its range for the last 30 days.",
+    ];
+  }
+  function levelText(kind, l) {
+    return kind + " at " + usdLevel.format(l.price) + ", " + pct.format(Math.abs(l.away) * 100) + "% " + (l.away >= 0 ? "above" : "below") + " now. Turned here " + l.touches + " times, most recently " + rtf.format(-l.daysAgo, "day") + ".";
+  }
+
+  // ---- drawing (SVG built from numbers only) ----
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs = {}) {
+    const n = document.createElementNS(SVG_NS, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v));
+    return n;
+  }
+  function chevron() {
+    return add(svgEl("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", class: "chev", "aria-hidden": "true" }), svgEl("path", { d: "M9 6l6 6-6 6" }));
+  }
+  // The last 30 days as a line, then the next 7 days as a fan: light = 8 in 10, darker = half, dashed = best guess
+  function fanChart(c, fc) {
+    const hist = c.daily.closes.slice(-30).concat([fc.price]);
+    const back = hist.length - 1;
+    const fan = [];
+    for (let d = 0; d <= E.AHEAD; d++) fan.push(E.fanAt(fc, d));
+    const W = 320, H = 170, L = 6, R = 6, T = 8, B = 24;
+    let lo = Infinity, hi = -Infinity;
+    for (const v of hist.concat(...fan)) { if (v < lo) lo = v; if (v > hi) hi = v; }
+    const l0 = Math.log(lo), span = Math.log(hi) - l0 || 1;
+    const x = (d) => (L + ((W - L - R) * (d + back)) / (back + E.AHEAD)).toFixed(1);
+    const y = (v) => (T + (H - T - B) * (1 - (Math.log(v) - l0) / span)).toFixed(1);
+    const line = (vals, from) => vals.map((v, k) => x(k + from) + "," + y(v)).join(" ");
+    const band = (a, b) => line(fan.map((f) => f[a]), 0) + " " + fan.map((f, d) => x(d) + "," + y(f[b])).reverse().join(" ");
+    const svg = svgEl("svg", {
+      viewBox: "0 0 " + W + " " + H, class: "fan", role: "img",
+      "aria-label": "Chart: " + c.name + "'s price over the last " + back + " days, then the likely range for the next 7 days, from " + usdGuess.format(fc.low) + " to " + usdGuess.format(fc.high) + ", with a best guess of " + usdGuess.format(fc.best) + ".",
+    });
+    const label = (text, at, anchor) => { const t = svgEl("text", { x: at, y: H - 6, "text-anchor": anchor }); t.textContent = text; return t; };
+    return add(svg,
+      svgEl("polygon", { points: band(0, 4), class: "b1" }),
+      svgEl("polygon", { points: band(1, 3), class: "b2" }),
+      svgEl("line", { x1: x(0), y1: T, x2: x(0), y2: H - B, class: "now" }),
+      svgEl("polyline", { points: line(hist, -back), class: "hist" }),
+      svgEl("polyline", { points: line(fan.map((f) => f[2]), 0), class: "mid" }),
+      label(back + " days ago", L, "start"), label("Now", +x(0) - 4, "end"), label("+7 days", W - R, "end"));
+  }
+
   // ---- rendering ----
   function renderStatus() {
     const box = $("status"), p = $("statusText");
@@ -535,6 +958,7 @@ body.sheet-open { overflow: hidden; }
 
   function renderToday() {
     const body = $("todayBody");
+    const was = body.contains(document.activeElement) ? document.activeElement.getAttribute("data-coin") : null;
     body.textContent = "";
     if (!saved) {
       const card = el("div", null, { class: "card" });
@@ -550,16 +974,145 @@ body.sheet-open { overflow: hidden; }
       if (!c) continue;
       const s = shown(c);
       const ch = fmtChange(s.change);
-      const li = el("li", null, { class: "coin" });
-      const main = add(el("div", null, { class: "cmain" }), el("p", c.name, { class: "cname" }), el("p", c.symbol + " · #" + (c.rank < 99999 ? c.rank : "?") + " by size", { class: "csym" }));
-      const chgP = el("p", null, { class: "chg " + ch.cls });
-      if (ch.arrow) add(chgP, el("span", ch.arrow + " ", { "aria-hidden": "true" }));
-      add(chgP, document.createTextNode(ch.text), s.change != null && ch.cls !== "flat" ? el("span", " in 24 hours", { class: "sr" }) : null);
-      const nums = add(el("div", null, { class: "cnums" }), el("p", fmtUsd(s.price), { class: "cprice" }), chgP);
-      add(li, el("span", c.symbol.slice(0, 4), { class: "badge", "aria-hidden": "true" }), main, nums);
-      add(list, li);
+      const ln = leanLine(forecastFor(c));
+      // The button's name is its visible words; hidden commas give VoiceOver a pause between parts
+      const pause = (t) => el("span", t, { class: "sr" });
+      const btn = el("button", null, { class: "coin", type: "button", "data-coin": c.id });
+      const main = add(el("span", null, { class: "cmain" }),
+        add(el("span", c.name, { class: "cname" }), pause(",")),
+        add(el("span", c.symbol + " · #" + (c.rank < 99999 ? c.rank : "?") + " by size", { class: "csym" }), pause(",")));
+      const chg = el("span", null, { class: "chg " + ch.cls });
+      if (ch.arrow) add(chg, el("span", ch.arrow + " ", { "aria-hidden": "true" }));
+      add(chg, document.createTextNode(ch.text), pause((s.change != null && ch.cls !== "flat" ? " in 24 hours" : "") + "."));
+      const nums = add(el("span", null, { class: "cnums" }), add(el("span", fmtUsd(s.price), { class: "cprice" }), pause(",")), chg);
+      add(btn, el("span", c.symbol.slice(0, 4), { class: "badge", "aria-hidden": "true" }), main, nums, chevron(), el("span", ln.text, { class: "lean " + ln.cls }));
+      add(list, add(el("li"), btn));
     }
     add(body, list);
+    if (was) { const b = body.querySelector('[data-coin="' + CSS.escape(was) + '"]'); if (b) b.focus({ preventScroll: true }); }
+  }
+
+  // ---- a coin's forecast sheet ----
+  let coinOpen = null;
+  function renderCoin() {
+    const body = $("coinBody");
+    body.textContent = "";
+    const c = saved && saved.coins.find((x) => x.id === coinOpen);
+    if (!c) {
+      $("coinTitle").textContent = "Forecast";
+      add(body, el("p", "This coin's prices aren't loaded right now. Close this and try Refresh."));
+      return;
+    }
+    $("coinTitle").textContent = c.name;
+    const s = shown(c), fc = forecastFor(c);
+    add(body, el("p", c.symbol + " · " + fmtUsd(s.price) + " · " + (s.live ? "live price" : "price from " + ago(saved.fetched)), { class: "muted" }));
+    const box = el("div", null, { class: "leanbox" });
+    add(body, box);
+    if (!fc.ok) {
+      add(box, el("p", "No forecast yet", { class: "leanbig" }), el("p", NO_FORECAST[fc.reason] || NO_FORECAST.error));
+      return;
+    }
+    const date = weekOut();
+    const big = el("p", null, { class: "leanbig " + fc.lean });
+    if (fc.lean !== "flip") add(big, el("span", (fc.lean === "up" ? "▲" : "▼") + " ", { "aria-hidden": "true" }));
+    add(big, document.createTextNode(fc.lean === "up" ? "Leaning up" : fc.lean === "down" ? "Leaning down" : "Coin flip"));
+    const odds = fc.lean === "down"
+      ? (100 - fc.odds) + "% odds it's lower on " + date + "."
+      : fc.odds + "% odds it's higher on " + date + "." + (fc.lean === "flip" ? " That's close to 50-50, so there's no lean." : "");
+    add(box, big, el("p", odds), el("p", CONF_TEXT[fc.confidence], { class: "conf" }));
+
+    add(body, el("h3", "Next 7 days"));
+    const nums = el("dl", null, { class: "nums" });
+    add(nums, add(el("div"), el("dt", "Best guess for " + date), el("dd", usdGuess.format(fc.best))));
+    add(nums, add(el("div"), el("dt", "Likely range"), el("dd", usdGuess.format(fc.low) + " to " + usdGuess.format(fc.high))));
+    add(body, nums, el("p", "Setups like this ended inside that range about 8 times in 10.", { class: "muted" }));
+    add(body, fanChart(c, fc), el("p", "The solid line is the last 30 days. The shading is where it's likely to go: the darker part about half the time, all of it about 8 times in 10. The dashed line is the best guess.", { class: "muted" }));
+
+    add(body, el("h3", "Key levels"));
+    const lv = fc.levels, ul = el("ul");
+    for (const l of lv.ceilings) add(ul, el("li", levelText("Ceiling", l)));
+    for (const l of lv.floors) add(ul, el("li", levelText("Floor", l)));
+    if (ul.children.length) add(body, ul);
+    if (!lv.ceilings.length || !lv.floors.length) {
+      add(body, el("p", !ul.children.length ? "No clear floors or ceilings in the last 4 months."
+        : !lv.ceilings.length ? "No clear ceiling above today's price in the last 4 months." : "No clear floor below today's price in the last 4 months."));
+    }
+    add(body, el("p", "These are prices where it turned around at least twice in the last 4 months, using daily prices. A ceiling is above today's price; a floor is below.", { class: "muted" }));
+
+    add(body, el("h3", "Why"));
+    const why = el("ul");
+    for (const t of whyList(fc.setup)) add(why, el("li", t));
+    add(body, why);
+
+    add(body, el("h3", "How it works"), el("p",
+      "Best Guess found the " + fc.lookalikes + " moments in the past year, across " + saved.coins.filter((x) => x.daily).length +
+      " coins, that looked most like " + c.name + " does now, and checked where each price was 7 days later. They came from " +
+      fc.weeks + " different weeks. Odds stay close to 50-50 unless they clearly agree."));
+  }
+
+  // ---- picking coins ----
+  let watchChanged = false;
+  function saveText() {
+    return !canSave
+      ? "Saved by a newer version of Best Guess, so this one won't change it. Close the app and open it again to update."
+      : saveOk ? "Saving on this device." : "Not saving on this device. Private browsing or full storage can cause this. The app still works; your watchlist just resets next time.";
+  }
+  function renderWatchList() {
+    const box = $("watchList");
+    box.textContent = "";
+    if (saved) {
+      const picked = new Set(watchIds());
+      for (const c of saved.coins) {
+        const rank = c.rank < 99999 ? c.rank : "?";
+        const input = el("input", null, { type: "checkbox", value: c.id });
+        input.checked = picked.has(c.id);
+        add(box, add(el("label", null, { class: "pick" }), input,
+          el("span", c.symbol.slice(0, 4), { class: "badge", "aria-hidden": "true" }),
+          add(el("span", c.name, { class: "pname" }), el("span", ",", { class: "sr" }), el("span", c.symbol + " · #" + rank + " by size", { class: "csym" }))));
+      }
+    } else {
+      add(box, el("p", "Your coin list shows up once prices load.", { class: "muted" }));
+    }
+    renderWatchStatus();
+  }
+  function renderWatchStatus() {
+    $("watchCount").textContent = saved ? watchIds().length + " of " + MAX_WATCH + " picked" : "";
+    $("watchSave").textContent = saveText();
+  }
+  $("watchList").addEventListener("change", (e) => {
+    const box = e.target.closest('input[type="checkbox"]');
+    if (!box || !saved) return;
+    const picked = new Set(watchIds());
+    if (box.checked) {
+      if (picked.size >= MAX_WATCH) { box.checked = false; toast("You can pick up to " + MAX_WATCH + " coins. Take one off first."); return; }
+      picked.add(box.value);
+    } else {
+      if (picked.size <= 1) { box.checked = true; toast("Keep at least one coin."); return; }
+      picked.delete(box.value);
+    }
+    state.watch = saved.coins.map((c) => c.id).filter((id) => picked.has(id));
+    save();
+    watchChanged = true;
+    renderToday();
+    renderWatchStatus();
+  });
+
+  // ---- sharing (the official link only; nothing about the person) ----
+  async function shareApp() {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Best Guess", text: "Free crypto odds, honestly. Not financial advice.", url: SHARE_URL });
+        return;
+      } catch (e) {
+        if (e && e.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(SHARE_URL);
+      toast("Link copied. Paste it in a message to share Best Guess.");
+    } catch (e) {
+      toast("Here's the link to share: " + SHARE_URL);
+    }
   }
 
   function renderAbout() {
@@ -573,15 +1126,13 @@ body.sheet-open { overflow: hidden; }
       live.status === "ok" ? "Working. Checked " + ago(live.at) + "." :
       live.status === "failed" ? "Not working: " + live.error + (l ? " Last worked " + ago(l.at) + "." : "") :
       l ? "Last worked " + ago(l.at) + "." : "Not checked yet.";
-    $("ckStore").textContent = !canSave
-      ? "Saved by a newer version of Best Guess, so this one won't change it. Close the app and open it again to update."
-      : saveOk ? "Saving on this device." : "Not saving on this device. Private browsing or full storage can cause this. The app still works; your watchlist just resets next time.";
+    $("ckStore").textContent = saveText();
   }
 
   function render() {
     renderStatus();
     renderToday();
-    if (openSheet) renderAbout();
+    renderSheet(false);
   }
 
   // ---- toast ----
@@ -595,11 +1146,19 @@ body.sheet-open { overflow: hidden; }
 
   // ---- sheets ----
   let openSheet = null, sheetOpener = null;
+  function renderSheet(full) {
+    if (!openSheet) return;
+    if (openSheet.id === "aboutSheet") renderAbout();
+    else if (openSheet.id === "coinSheet") renderCoin();
+    else if (full) renderWatchList();
+    else renderWatchStatus();
+  }
   function showSheet(id, opener) {
+    if (!SHEETS.includes(id)) return;
     if (openSheet) hideSheet(false);
     sheetOpener = opener || document.activeElement;
     openSheet = $(id);
-    renderAbout();
+    renderSheet(true);
     openSheet.hidden = false;
     $("sheetScrim").hidden = false;
     document.body.classList.add("sheet-open");
@@ -608,15 +1167,26 @@ body.sheet-open { overflow: hidden; }
   }
   function hideSheet(restore = true) {
     if (!openSheet) return;
+    const was = openSheet.id;
     openSheet.hidden = true;
     $("sheetScrim").hidden = true;
     document.body.classList.remove("sheet-open");
     openSheet = null;
-    if (restore && sheetOpener && sheetOpener.isConnected) sheetOpener.focus({ preventScroll: true });
+    if (restore && sheetOpener) {
+      // a coin's row may have been redrawn while its sheet was open, so find it again
+      let back = sheetOpener;
+      const coin = back.getAttribute && back.getAttribute("data-coin");
+      if (!back.isConnected && coin) back = document.querySelector('#todayBody [data-coin="' + CSS.escape(coin) + '"]');
+      if (back && back.isConnected) back.focus({ preventScroll: true });
+    }
+    if (was === "watchSheet" && watchChanged) { watchChanged = false; checkLive(false); }
   }
   document.addEventListener("click", (e) => {
     const o = e.target.closest("[data-open]");
-    if (o) showSheet("aboutSheet", o);
+    if (o) { showSheet(o.getAttribute("data-open"), o); return; }
+    const c = e.target.closest("[data-coin]");
+    if (c) { coinOpen = c.getAttribute("data-coin"); showSheet("coinSheet", c); return; }
+    if (e.target.closest("[data-share]")) { shareApp(); return; }
     if (e.target.closest("#retryBtn")) refresh(true);
   });
   document.querySelectorAll(".sheet [data-close]").forEach((b) => b.addEventListener("click", () => hideSheet()));
@@ -624,7 +1194,7 @@ body.sheet-open { overflow: hidden; }
   document.querySelectorAll(".sheet").forEach((sh) => sh.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { e.preventDefault(); hideSheet(); return; }
     if (e.key !== "Tab") return;
-    const f = Array.from(sh.querySelectorAll("button, a[href]")).filter((x) => !x.hidden && !x.disabled && x.offsetParent !== null);
+    const f = Array.from(sh.querySelectorAll("button, a[href], input")).filter((x) => !x.hidden && !x.disabled && x.offsetParent !== null);
     if (!f.length) return;
     const first = f[0], last = f[f.length - 1];
     if (e.shiftKey && (document.activeElement === first || document.activeElement === sh)) { e.preventDefault(); last.focus(); }
