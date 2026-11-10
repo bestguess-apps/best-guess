@@ -6,7 +6,7 @@ Read this and how-to-update.md before changing anything. Decisions below were ma
 A free crypto forecaster for friends and family. Pick coins from the top 25 and see which way each is leaning over the next 7 days, how confident that is, a likely price range, and how often the engine has been right before. Not financial advice. A simple web tool (project type 2), with live outside data.
 
 ## Where things stand (Nov 9, 2026)
-- **Stage 1 (the pipes), version 0.1.0:** built and tested in headless Chrome with made-up prices (see CHANGELOG). Waiting on: Pages turned on (source: GitHub Actions), the first Publish run with real CoinGecko data, and About → Data check on a real iPhone saying both saved and live prices work.
+- **Stage 1 (the pipes), version 0.1.0:** built and tested in headless Chrome with made-up prices (see CHANGELOG). Pages is on (source: GitHub Actions). The first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers, and published the site. Waiting on: About → Data check on a real iPhone saying both saved and live prices work (this is the only test of the live check from a real browser).
 - Stages 2 to 5 not started.
 
 ## Where it lives

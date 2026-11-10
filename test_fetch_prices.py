@@ -15,6 +15,9 @@ import urllib.error
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import fetch_prices as fp  # noqa: E402
 
+# Keep test output quiet, so made-up failures don't show up as warnings on the GitHub run page
+fp.log = fp.warn = lambda msg: None
+
 NOW = dt.datetime(2026, 11, 10, 6, 17, tzinfo=dt.timezone.utc)
 DAY_MS = 86400000
 
