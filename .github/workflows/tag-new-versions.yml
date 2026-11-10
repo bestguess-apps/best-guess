@@ -34,8 +34,8 @@ jobs:
             exit 1
           fi
           tag="v$version"
-          existing=$(gh api "repos/$REPO/git/ref/tags/$tag" --jq '.object.type + " " + .object.sha' 2>/dev/null || true)
-          if [ -n "$existing" ]; then
+          # gh prints GitHub's "Not Found" reply even when the tag is missing, so go by its exit status, not its output.
+          if existing=$(gh api "repos/$REPO/git/ref/tags/$tag" --jq '.object.type + " " + .object.sha' 2>/dev/null); then
             old_type=${existing%% *}
             old=${existing#* }
             # Normally the tag is already in main's history, so there's nothing to do.
@@ -61,5 +61,6 @@ jobs:
             echo "Moved $tag from $old (no longer in main's history) to $SHA."
             exit 0
           fi
+          # Not found: add it. If the tag exists after all, GitHub refuses and the run stops without changing anything.
           gh api "repos/$REPO/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" --silent
           echo "Added $tag at $SHA."
