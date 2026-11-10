@@ -7,7 +7,7 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 
 ## Where things stand (Nov 10, 2026)
 - **Stage 1 (the pipes), version 0.1.0:** built and tested in headless Chrome with made-up prices (see CHANGELOG). Pages is on (source: GitHub Actions). The first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers, and published the site. **Stage 1 is done:** on a real iPhone (Nov 10, 02:22 UTC), About → Data check said "25 coins, updated 20 minutes ago" and "Live prices: Working," so CoinGecko allows the live check from a real phone browser.
-- **Stage 2 (the forecasting engine), version 0.2.0:** built and tested with made-up prices (see CHANGELOG). Each watchlist row shows its 7-day lean; tapping it opens the forecast (odds, confidence, best guess, likely range on a fan chart, key levels, why, how it works). Edit coins (1 to 10) and a Share button are in. **Still to do:** check it on a real iPhone with real prices once Publish has run: open a few coins, and About → Data check.
+- **Stage 2 (the forecasting engine), version 0.2.0:** built and tested with made-up prices (see CHANGELOG). Each watchlist row shows its 7-day lean; tapping it opens the forecast (odds, confidence, best guess, likely range on a fan chart, key levels, why, how it works). Edit coins (1 to 10) and a Share button are in. **Stage 2 is done:** on a real iPhone (Nov 10), the forecasts looked right on real prices, and About → Data check showed 25 coins saved, live prices working and settings saving.
 - Stages 3 to 5 not started.
 
 ## Where it lives
@@ -21,7 +21,7 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 1. ~~Finish stage 1~~ (done Nov 9).
 2. ~~Update the app skills~~ with what stage 1 proved (done: app-new-project has "Live outside data", with Best Guess as the reference).
 3. ~~Org security settings~~ on bestguess-apps and the Usage Saver org (done Nov 2026).
-4. ~~Stage 2, the forecasting engine~~ (built Nov 10, version 0.2.0). Waiting on the real-iPhone check above.
+4. ~~Stage 2, the forecasting engine~~ (done Nov 10, version 0.2.0, checked on a real iPhone).
 5. **Stage 3, Track record:** replay the engine over the last 90 days without letting it see the future (`prepare(samples, asOfDay)` plus the closes up to that day, the way `replay()` in test_engine.mjs does), compared with a coin flip and with "no change." Speed matters here: 90 days × 25 coins is about 2,250 forecasts, which would take several seconds on an older phone at today's speed. Either speed up the look-alike search or work the replay out on GitHub at publish time and add it to prices.json. Also let the track record feed confidence (a coin whose calls have been poor shouldn't say High).
 6. **Stage 4, Worth a look:** the day's 1 to 3 strongest, best-tested leans, or "Nothing stands out today."
 7. **Stage 5, first release:** self-test page (`#st-go`, `#st-sum`), toolkit release check, accessibility check, security release check, CHANGELOG, then the iPhone self-test and VoiceOver run.
@@ -64,7 +64,7 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 - **Fonts:** the same built-in fonts as Till Payday (Atkinson Hyperlegible, Bricolage Grotesque, DM Mono; SIL Open Font License). Own colors (indigo), contrast computed in code.
 
 ## Known limits
-- Forecasts have only been tested on made-up prices so far. The Track record (stage 3) is the real test, and it will be shown even if it's bad.
+- How often forecasts are right has only been tested on made-up prices so far; on real prices they've only been looked at. The Track record (stage 3) is the real test, and it will be shown even if it's bad.
 - A year of prices holds only about 50 separate weeks, so confidence stays modest on purpose, and most days say "coin flip."
 - GitHub Pages can't set headers, so the lock is a meta tag and `frame-ancestors` (clickjacking) isn't possible.
 - Scheduled runs can be late, and GitHub pauses them in public repos after 60 days without changes (see how-to-update.md).
