@@ -6,14 +6,15 @@ Free crypto odds, honestly. See which way a few coins are leaning, why, and how 
 
 - Your watchlist of up to 10 coins, picked from the top 25 (stablecoins and wrapped copies left out), with prices that update live.
 - A 7-day forecast for each coin: which way it's leaning (or "coin flip"), the odds and a confidence level, a best guess and likely price range on a small fan chart, key price levels, and the reasons in plain words. Best Guess's own engine makes it by finding past look-alike setups across all the coins and seeing what happened 7 days later.
-- Coming next: a Track record that compares the engine with a plain coin flip, even when that looks bad, and "Worth a look" (the day's strongest, best-tested leans).
+- A Track record: the last 90 days of calls replayed without seeing the future, next to a plain coin flip, shown even when it looks bad. A coin with poor past calls can't show high confidence.
+- Coming next: "Worth a look" (the day's strongest, best-tested leans).
 - No accounts, ads or tracking. Your watchlist and settings save only on your device.
 - Add it to your Home Screen and it works like an app, even offline, with the last prices it saw.
 - A Share button sends the official link, with nothing about you attached.
 
 ## Privacy, in plain words
 
-- Saved prices come from this website. GitHub fetches them from CoinGecko about every 6 hours.
+- Saved prices and the track record come from this website. GitHub fetches prices from CoinGecko about every 6 hours and works the track record out from them.
 - For live prices, your phone asks CoinGecko for the latest prices of the coins on your watchlist. CoinGecko sees that request like any website visit, and nothing else. A built-in privacy lock stops the page from contacting any other site.
 
 ## Not financial advice

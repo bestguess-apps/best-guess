@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2RAG3pufvcH5hpRNtaWLzIVGk/erR0KMwb2nUXkLNys=' 'sha256-osrqGCzNE7ix94dA9pF3rGdcmhocFj9NRIQ0EKZUYmg='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-/IHkjyprSb1t1xnMMGZI/yxtaAZHpX7tw85GZsyx9qw=' 'sha256-tve7yEeUXHSkOQSuiNXmgaWNkALo5YdyvRZXSA2QzVQ='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Free, private crypto odds with honest confidence levels and a track record. Not financial advice.">
 <meta name="theme-color" content="#F2F1F7" media="(prefers-color-scheme: light)">
@@ -172,6 +172,26 @@ h2 { font-family: var(--f-display); font-weight: 600; font-size: 1.125rem; margi
 .fan text { fill: var(--muted); font-family: var(--f-body); font-size: 12px; }
 .advice { background: var(--warn-bg); border-radius: 10px; padding: 10px 12px; }
 
+/* Track record: plain numbers with a sentence each; every coin opens for its own */
+.panel h3 { font-family: var(--f-display); font-weight: 600; font-size: 1.0625rem; margin: 8px 0 0; }
+#recordBody { display: flex; flex-direction: column; gap: 12px; }
+.stats { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.stats > div { background: var(--field); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.stats dt { font-size: 0.875rem; font-weight: 700; color: var(--muted); }
+.stats dd { margin: 2px 0 0; font-size: 0.9375rem; overflow-wrap: anywhere; }
+.stats .big { font-family: var(--f-num); font-weight: 500; font-size: 1.125rem; font-variant-numeric: tabular-nums; }
+.stats .big small { font-family: var(--f-body); font-weight: 400; font-size: 0.875rem; color: var(--muted); }
+.recs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.rec { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.rec summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; border-radius: 14px; }
+.rec summary::-webkit-details-marker { display: none; }
+.rec summary:hover .cname { color: var(--accent); }
+.rec summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rec summary .rmain, .rec summary .rmain > span { display: block; }
+.rec .chev { grid-area: auto; }
+.rec[open] .chev { transform: rotate(90deg); }
+.rec .recbody { padding: 0 12px 12px; }
+
 /* Picking coins */
 .count { font-weight: 700; }
 .picks { border: 0; margin: 0; padding: 0; min-width: 0; }
@@ -281,7 +301,8 @@ body.sheet-open { overflow: hidden; }
 
   <section class="panel" id="view-record" role="tabpanel" aria-labelledby="tab-record" hidden>
     <h2>Track record</h2>
-    <div class="card"><p>Coming soon: how often each coin's lean was right over the last 90 days, next to a plain coin flip. Shown honestly, even when it's bad.</p></div>
+    <div id="recordBody"><p class="muted">Loading prices…</p></div>
+    <p class="muted">Past results can't promise future ones. Not financial advice.</p>
   </section>
 
   <p class="foot">Price data from <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer">CoinGecko</a>. Not financial advice.</p>
@@ -302,11 +323,12 @@ body.sheet-open { overflow: hidden; }
   <h3>How the odds work</h3>
   <p>For each coin, Best Guess sizes up today's setup: the price against its 20- and 50-day averages, how far it moved in the last 7 and 30 days, how much it's swinging, and where it sits in its 30-day range. Then it finds the 50 moments in the past year, across all the coins it follows, that looked most like that, and checks where each price was 7 days later.</p>
   <p>Odds stay close to 50-50 unless those look-alikes clearly agree. Under 55% either way, it says "coin flip", and most days that's the honest answer. Confidence (low, medium or high) depends on how strongly they agree and how many different weeks they came from. Coins tend to move together, so ten coins on the same day count as one example.</p>
+  <p>The Track record tab shows how its calls really did over the last 90 days, good or bad. That record also holds confidence down: a coin whose leans were right less than half the time stays at low confidence, and none can say high unless its leans were right at least 55% of the time.</p>
 
   <h3>Your privacy</h3>
   <ul>
     <li>Your watchlist and settings save on this device only. Nothing about you is sent anywhere.</li>
-    <li>Saved prices come from this website, refreshed about every 6 hours.</li>
+    <li>Saved prices and the track record come from this website, refreshed about every 6 hours.</li>
     <li>For live prices, your phone asks CoinGecko for the latest prices of the coins on your watchlist. CoinGecko sees that request like any website visit, and nothing else.</li>
   </ul>
 
@@ -314,6 +336,7 @@ body.sheet-open { overflow: hidden; }
   <dl class="checks">
     <div><dt>Saved prices</dt><dd id="ckSaved">Not loaded yet</dd></div>
     <div><dt>Live prices</dt><dd id="ckLive">Not checked yet</dd></div>
+    <div><dt>Track record</dt><dd id="ckRecord">Not loaded yet</dd></div>
     <div><dt>Settings</dt><dd id="ckStore">Saving on this device</dd></div>
   </dl>
   <button class="ghost" type="button" id="checkAgain">Check again</button>
@@ -378,8 +401,25 @@ const BestGuessEngine = (() => {
   const MAX_Y = 20;         // caps one look-alike's 7-day move, in daily swings
   const QS = [0.1, 0.25, 0.5, 0.75, 0.9];
   const DAY_MS = 86400000;
+  const RECORD_DAYS = 90;   // how many days of past calls the Track record replays
+  const MIN_LEANS = 10;     // leans needed before saying how good they were...
+  const MIN_CALLS = 20;     // ...or calls, for the likely range and the best guess...
+  const MIN_WEEKS = 4;      // ...and they must come from at least this many separate weeks
+  const PROMISE = 0.8;      // the likely range should hold about 8 times in 10
+  const CAP_LOW = 0.5;      // leans right less often than this: Low confidence at most
+  const CAP_MEDIUM = 0.55;  // less often than this (the odds a lean needs): Medium at most
 
   function dayNum(iso) { return Math.floor(Date.parse(iso + "T00:00:00Z") / DAY_MS); }
+  function dayIso(n) { return new Date(n * DAY_MS).toISOString().slice(0, 10); }
+
+  // How many separate weeks a list of days covers. Coins move together and calls a day apart
+  // overlap, so days inside the same 7 days count as one example, not many.
+  function separateWeeks(days) {
+    const sorted = days.slice().sort((a, b) => a - b);
+    let weeks = 0, edge = -Infinity;
+    for (const d of sorted) if (d >= edge) { weeks++; edge = d + AHEAD; }
+    return weeks;
+  }
 
   // How much the price swings day to day: the spread of daily log moves from index `from` to `to`
   function swingSize(px, from, to) {
@@ -498,9 +538,7 @@ const BestGuessEngine = (() => {
       return { y: use[k].y, w, day: use[k].day };
     });
     // Coins move together, so look-alikes from overlapping weeks aren't separate examples
-    const days = near.map((x) => x.day).sort((a, b) => a - b);
-    let weeks = 0, edge = -Infinity;
-    for (const d of days) if (d >= edge) { weeks++; edge = d + AHEAD; }
+    const weeks = separateWeeks(near.map((x) => x.day));
     const nEff = Math.min((sumW * sumW) / sumW2, weeks);
     // Mix look-alikes (worth nEff) with general swings (worth PRIOR), so thin evidence stays near 50-50
     const scale = nEff / sumW, gw = PRIOR / general.length, total = nEff + PRIOR;
@@ -577,14 +615,134 @@ const BestGuessEngine = (() => {
     return fc.q.map((y) => fc.price * Math.exp((c * t + (y - c) * s) * fc.vol));
   }
 
-  return { AHEAD, LOOKALIKES, MIN_DAYS, LEVEL_DAYS, dayNum, setupAt, buildLibrary, prepare, forecast, forecastCoin, keyLevels, fanAt };
+  // ---- the track record ----
+  // Replays the last `span` days whose 7 days have ended. Each call is made the way it would have
+  // been made that day: prepare(lib, day) only uses setups that had finished by then, and the coin's
+  // own prices stop at that day. `later` (the price 7 days on) is only ever used to score the call.
+  function replayCalls(coins, span = RECORD_DAYS) {
+    const list = [];
+    let last = -Infinity;
+    for (const c of coins || []) {
+      const d = c && c.daily;
+      if (!d || !Array.isArray(d.closes)) continue;
+      const start = dayNum(d.start);
+      if (!Number.isFinite(start)) continue;
+      list.push({ id: c.id, start, px: d.closes });
+      last = Math.max(last, start + d.closes.length - 1);
+    }
+    const calls = [];
+    if (!list.length || !(span >= 1)) return calls;
+    const lib = buildLibrary(coins);
+    for (let day = last - AHEAD - span + 1; day <= last - AHEAD; day++) {
+      const prep = prepare(lib, day);
+      if (!prep.ok) continue;
+      for (const c of list) {
+        const i = day - c.start;
+        if (i < MIN_DAYS || i + AHEAD >= c.px.length) continue;
+        const fc = forecastCoin(prep, { closes: c.px.slice(0, i) }, c.px[i]);
+        if (!fc.ok || !(c.px[i + AHEAD] > 0)) continue;
+        calls.push({ coin: c.id, day, lean: fc.lean, confidence: fc.confidence, price: fc.price, low: fc.low, best: fc.best, high: fc.high, later: c.px[i + AHEAD] });
+      }
+    }
+    return calls;
+  }
+
+  // Counts for a set of calls. A lean is right when the price ended on the side it leaned to.
+  // conf holds [leans, right] for each confidence level. The misses are average distances from the
+  // real price, as a share of the price on the day of the call.
+  function scoreCalls(calls) {
+    const s = { n: 0, flips: 0, leans: 0, right: 0, weeks: 0, leanWeeks: 0, inRange: 0, conf: { low: [0, 0], medium: [0, 0], high: [0, 0] }, missBest: null, missFlat: null };
+    const days = [], leanDays = [];
+    let mb = 0, mf = 0;
+    for (const c of calls) {
+      s.n++;
+      days.push(c.day);
+      if (c.later >= c.low && c.later <= c.high) s.inRange++;
+      mb += Math.abs(c.later - c.best) / c.price;
+      mf += Math.abs(c.later - c.price) / c.price;
+      if (c.lean === "flip") { s.flips++; continue; }
+      const ok = (c.lean === "up") === (c.later > c.price);
+      s.leans++;
+      leanDays.push(c.day);
+      if (ok) s.right++;
+      const level = s.conf[c.confidence];
+      if (level) { level[0]++; if (ok) level[1]++; }
+    }
+    s.weeks = separateWeeks(days);
+    s.leanWeeks = separateWeeks(leanDays);
+    if (s.n) { s.missBest = mb / s.n; s.missFlat = mf / s.n; }
+    return s;
+  }
+
+  // The whole record: overall and for each coin. null when there's nothing to replay yet.
+  function trackRecord(coins, span = RECORD_DAYS) {
+    const calls = replayCalls(coins, span);
+    if (!calls.length) return null;
+    const by = new Map();
+    let from = Infinity, to = -Infinity;
+    for (const c of calls) {
+      if (!by.has(c.coin)) by.set(c.coin, []);
+      by.get(c.coin).push(c);
+      if (c.day < from) from = c.day;
+      if (c.day > to) to = c.day;
+    }
+    return {
+      days: span, from: dayIso(from), to: dayIso(to),
+      all: scoreCalls(calls),
+      coins: [...by].map(([id, list]) => Object.assign({ id }, scoreCalls(list))),
+    };
+  }
+
+  const enoughLeans = (s) => !!s && s.leans >= MIN_LEANS && s.leanWeeks >= MIN_WEEKS;
+  const enoughCalls = (s) => !!s && s.n >= MIN_CALLS && s.weeks >= MIN_WEEKS;
+
+  // Plain verdicts for a set of counts. "few" means too few calls to tell. Luck is judged by
+  // separate weeks, not raw calls, so a short lucky or unlucky run isn't called a result.
+  //   leans: better / worse / same (as a coin flip)     range: ok / narrow / wide (vs 8 in 10)
+  //   guess: closer / further / same (as assuming no change)
+  function judge(s) {
+    const out = { leans: "few", range: "few", guess: "few", hit: null, cover: null };
+    if (!s || !(s.n > 0)) return out;
+    out.cover = s.inRange / s.n;
+    if (s.leans > 0) out.hit = s.right / s.leans;
+    if (enoughLeans(s)) {
+      const z = (out.hit - 0.5) * 2 * Math.sqrt(Math.min(s.leans, s.leanWeeks));
+      out.leans = z >= 2 ? "better" : z <= -2 ? "worse" : "same";
+    }
+    if (enoughCalls(s)) {
+      const z = (out.cover - PROMISE) / Math.sqrt((PROMISE * (1 - PROMISE)) / Math.min(s.n, s.weeks));
+      out.range = z <= -2 ? "narrow" : z >= 2 ? "wide" : "ok";
+      const r = s.missFlat > 0 ? s.missBest / s.missFlat : 1;
+      out.guess = r < 0.97 ? "closer" : r > 1.03 ? "further" : "same";
+    }
+    return out;
+  }
+
+  // The track record holds confidence down: a coin whose past leans were poor can't say High.
+  // It goes by the coin's own leans when there are enough to tell, otherwise by all coins together.
+  // It can only lower confidence, never raise it, and never changes the lean or the odds.
+  function capConfidence(confidence, coinScore, allScore) {
+    const rank = { none: 0, low: 1, medium: 2, high: 3 };
+    const by = enoughLeans(coinScore) ? "coin" : enoughLeans(allScore) ? "all" : null;
+    if (!by || !(rank[confidence] > 1)) return { confidence, held: null };
+    const s = by === "coin" ? coinScore : allScore;
+    const hit = s.right / s.leans;
+    const top = hit < CAP_LOW ? "low" : hit < CAP_MEDIUM ? "medium" : "high";
+    return rank[top] < rank[confidence] ? { confidence: top, held: by, right: s.right, leans: s.leans } : { confidence, held: null };
+  }
+
+  return {
+    AHEAD, LOOKALIKES, MIN_DAYS, LEVEL_DAYS, RECORD_DAYS, MIN_LEANS, MIN_CALLS, MIN_WEEKS,
+    dayNum, dayIso, separateWeeks, setupAt, buildLibrary, prepare, forecast, forecastCoin, keyLevels, fanAt,
+    replayCalls, scoreCalls, trackRecord, judge, capConfidence,
+  };
 })();
 </script>
 <script>
 (() => {
   "use strict";
   // ---- settings ----
-  const APP_VERSION = "0.2.0";
+  const APP_VERSION = "0.3.0";
   const LOCAL_KEY = "best-guess-v1";
   const PRICES_URL = "prices.json";
   const LIVE_URL = "https://api.coingecko.com/api/v3/simple/price";
@@ -699,7 +857,39 @@ const BestGuessEngine = (() => {
     }
     if (!coins.length) throw new Error("The saved prices file has no coins in it.");
     coins.sort((a, b) => a.rank - b.rank);
-    return { fetched, coins };
+    return { fetched, coins, record: readRecord(j.record, coins) };
+  }
+  // The track record is worked out when prices are published (add_record.mjs). It's checked like
+  // everything else in the file: whole numbers that add up, or it isn't used at all.
+  const CONF_LEVELS = ["low", "medium", "high"];
+  function readScore(r) {
+    if (!r || typeof r !== "object") return null;
+    const count = (v) => (Number.isInteger(v) && v >= 0 && v <= 100000 ? v : null);
+    const s = { n: count(r.n), flips: count(r.flips), leans: count(r.leans), right: count(r.right), weeks: count(r.weeks), leanWeeks: count(r.leanWeeks), inRange: count(r.inRange), missBest: num(r.missBest, 0, 1000), missFlat: num(r.missFlat, 0, 1000) };
+    for (const k of Object.keys(s)) if (s[k] === null) return null;
+    s.conf = {};
+    let leans = 0, right = 0;
+    for (const lv of CONF_LEVELS) {
+      const pair = r.conf && typeof r.conf === "object" && Object.prototype.hasOwnProperty.call(r.conf, lv) ? r.conf[lv] : null;
+      if (!Array.isArray(pair) || count(pair[0]) === null || count(pair[1]) === null || pair[1] > pair[0]) return null;
+      s.conf[lv] = [pair[0], pair[1]];
+      leans += pair[0];
+      right += pair[1];
+    }
+    const addsUp = s.n >= 1 && s.flips + s.leans === s.n && s.right <= s.leans && s.inRange <= s.n && leans === s.leans && right === s.right && s.weeks >= 1 && s.weeks <= s.n && s.leanWeeks <= s.weeks && s.leanWeeks <= s.leans;
+    return addsUp ? s : null;
+  }
+  function readRecord(r, coins) {
+    if (!r || typeof r !== "object" || r.v !== 1) return null;
+    const all = readScore(r.all);
+    if (!all || !Number.isInteger(r.days) || r.days < 1 || r.days > 400 || !realDay(r.from) || !realDay(r.to) || r.from > r.to || !Array.isArray(r.coins)) return null;
+    const menu = new Set(coins.map((c) => c.id)), byCoin = new Map();
+    for (const c of r.coins.slice(0, 60)) {
+      if (!c || typeof c !== "object" || typeof c.id !== "string" || !menu.has(c.id) || byCoin.has(c.id)) continue;
+      const score = readScore(c);
+      if (score) byCoin.set(c.id, score);
+    }
+    return { days: r.days, from: r.from, to: r.to, all, coins: byCoin };
   }
   function readLive(j, ids) {
     if (!j || typeof j !== "object" || Array.isArray(j)) throw new Error("CoinGecko's answer wasn't what Best Guess expected.");
@@ -852,7 +1042,13 @@ const BestGuessEngine = (() => {
       const ck = c.id + ":" + price;
       if (!fcCache.has(ck)) {
         if (fcCache.size > 200) fcCache.clear();
-        fcCache.set(ck, E.forecastCoin(prepared, c.daily, price));
+        const fc = E.forecastCoin(prepared, c.daily, price);
+        // A poor track record holds confidence down (it never raises it, or changes the lean)
+        if (fc.ok && saved.record) {
+          const cap = E.capConfidence(fc.confidence, saved.record.coins.get(c.id), saved.record.all);
+          if (cap.held) { fc.confidence = cap.confidence; fc.held = cap; }
+        }
+        fcCache.set(ck, fc);
       }
       return fcCache.get(ck);
     } catch (e) {
@@ -878,6 +1074,11 @@ const BestGuessEngine = (() => {
     if (!fc.ok) return { cls: "none", text: "7-day lean: no forecast yet" };
     if (fc.lean === "flip") return { cls: "flip", text: "7-day lean: coin flip" };
     return { cls: fc.lean, text: "7-day lean: " + fc.lean + ", " + (fc.lean === "up" ? fc.odds : 100 - fc.odds) + "% · " + CONF_WORD[fc.confidence] };
+  }
+  function confText(c, fc) {
+    if (!fc.held) return CONF_TEXT[fc.confidence];
+    const whose = fc.held.held === "coin" ? c.name + "'s leans" : "leans across all coins";
+    return cap(fc.confidence) + " confidence: look-alikes agree more strongly than that, but " + whose + " were right only " + fc.held.right + " of " + fc.held.leans + " times in the last " + saved.record.days + " days. That holds confidence down.";
   }
   function weekOut() { return dayFmt.format(new Date(Date.now() + E.AHEAD * DAY_MS)); }
   function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
@@ -1019,7 +1220,7 @@ const BestGuessEngine = (() => {
     const odds = fc.lean === "down"
       ? (100 - fc.odds) + "% odds it's lower on " + date + "."
       : fc.odds + "% odds it's higher on " + date + "." + (fc.lean === "flip" ? " That's close to 50-50, so there's no lean." : "");
-    add(box, big, el("p", odds), el("p", CONF_TEXT[fc.confidence], { class: "conf" }));
+    add(box, big, el("p", odds), el("p", confText(c, fc), { class: "conf" }));
 
     add(body, el("h3", "Next 7 days"));
     const nums = el("dl", null, { class: "nums" });
@@ -1048,6 +1249,113 @@ const BestGuessEngine = (() => {
       "Best Guess found the " + fc.lookalikes + " moments in the past year, across " + saved.coins.filter((x) => x.daily).length +
       " coins, that looked most like " + c.name + " does now, and checked where each price was 7 days later. They came from " +
       fc.weeks + " different weeks. Odds stay close to 50-50 unless they clearly agree."));
+
+    add(body, el("h3", "Its track record"), el("p", coinRecordText(c)));
+  }
+
+  // ---- the track record (worked out at publish time; the app only shows it) ----
+  const whole = new Intl.NumberFormat("en-US");
+  const utcDay = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  const share = (a, b) => Math.round((100 * a) / b) + "%";
+  const outOf = (a, b) => whole.format(a) + " of " + whole.format(b);
+  // Luck is judged by separate weeks, so a verdict needs a big gap from 50%. Otherwise it says so.
+  function leanVerdict(s, j) {
+    return j.leans === "better" ? "That's better than luck alone would explain."
+      : j.leans === "worse" ? "That's worse than a coin flip, by more than bad luck would explain."
+      : "That could still be luck, good or bad: these leans came from only " + s.leanWeeks + " separate weeks.";
+  }
+  const RANGE_VERDICT = {
+    few: "Too few calls to tell.",
+    ok: "The promise is about 8 in 10. That's in line with it.",
+    narrow: "The promise is about 8 in 10. The range has been too narrow.",
+    wide: "The promise is about 8 in 10. The range has been wider than it needed to be.",
+  };
+  const GUESS_VERDICT = {
+    few: "Too few calls to tell which is closer.",
+    same: "About the same.",
+    closer: "The best guess was closer.",
+    further: "Assuming no change was closer.",
+  };
+  function tooFew() { return "Too few leans to tell. It takes at least " + E.MIN_LEANS + ", from " + E.MIN_WEEKS + " separate weeks."; }
+  function coinRecordText(c) {
+    const rec = saved.record;
+    if (!rec) return "The track record isn't ready yet. It's worked out when prices update.";
+    const s = rec.coins.get(c.id), span = "In the last " + rec.days + " days ";
+    if (!s) return "There isn't enough price history yet to check its past calls.";
+    const more = " The Track record tab has more.";
+    if (!s.leans) return span + "it said coin flip every time (" + whole.format(s.n) + " calls), so there are no leans to score." + more;
+    const j = E.judge(s);
+    if (j.leans === "few") return span + "its leans were right " + outOf(s.right, s.leans) + " times. " + tooFew() + more;
+    return span + "its leans were right " + share(s.right, s.leans) + " of the time (" + outOf(s.right, s.leans) + "). A coin flip gets 50%. " + leanVerdict(s, j) + more;
+  }
+  function coinRecordLine(s) {
+    if (!s) return "No track record yet";
+    if (!s.leans) return "No leans, all coin flips";
+    return "Leans right " + (E.judge(s).leans === "few" ? outOf(s.right, s.leans) + " · too few to tell" : share(s.right, s.leans) + " (" + outOf(s.right, s.leans) + ")");
+  }
+  function stat(label, big, small, ...notes) {
+    const value = el("dd", big, { class: "big" });
+    if (small) add(value, document.createTextNode(" "), el("small", small));
+    return add(el("div"), el("dt", label), value, ...notes.map((t) => (t ? el("dd", t) : null)));
+  }
+  // The five results for one set of calls (all coins together, or one coin)
+  function statList(s) {
+    const j = E.judge(s), dl = el("dl", null, { class: "stats" });
+    if (!s.leans) add(dl, stat("Leans that were right", "No leans", "", "It said coin flip every time, so there's nothing to score."));
+    else if (j.leans === "few") add(dl, stat("Leans that were right", outOf(s.right, s.leans), "", tooFew()));
+    else add(dl, stat("Leans that were right", share(s.right, s.leans), "(" + outOf(s.right, s.leans) + ")", "A coin flip gets 50%. " + leanVerdict(s, j)));
+    add(dl, stat("Said coin flip instead of leaning", share(s.flips, s.n), "(" + outOf(s.flips, s.n) + " calls)", "It only leans when look-alikes clearly agree."));
+    const levels = CONF_LEVELS.map((lv) => {
+      const [n, right] = s.conf[lv];
+      return cap(lv) + ": " + (!n ? "no leans" : n < E.MIN_LEANS ? outOf(right, n) + " right, too few to tell" : share(right, n) + " right (" + outOf(right, n) + ")");
+    });
+    const conf = add(el("div"), el("dt", "Leans by confidence"));
+    for (const t of levels) add(conf, el("dd", t));
+    add(dl, add(conf, el("dd", "Rated by the look-alikes alone, before a poor track record holds any down.", { class: "muted" })));
+    add(dl, stat("Price landed inside the likely range", share(s.inRange, s.n), "(" + outOf(s.inRange, s.n) + " calls)", RANGE_VERDICT[j.range]));
+    add(dl, stat("How far off the best guess was", pct.format(s.missBest * 100) + "%", "on average", "Just assuming \u201Cno change\u201D was off by " + pct.format(s.missFlat * 100) + "%. " + GUESS_VERDICT[j.guess]));
+    return dl;
+  }
+  let recordFor = "";
+  function renderRecord() {
+    const body = $("recordBody");
+    const key = saved ? saved.fetched + ":" + (saved.record ? saved.record.to : "none") + ":" + watchIds().join(",") : "none:" + savedError;
+    if (key === recordFor) return;
+    recordFor = key;
+    const open = new Set(Array.from(body.querySelectorAll("details[open]"), (d) => d.getAttribute("data-rec")));
+    const was = body.contains(document.activeElement) ? document.activeElement.closest("details") : null;
+    const wasId = was ? was.getAttribute("data-rec") : null;
+    body.textContent = "";
+    const rec = saved && saved.record;
+    if (!rec) {
+      add(body, add(el("div", null, { class: "card" }), el("p", !saved ? (savedError || "Loading prices…")
+        : "The track record isn't ready yet. It's worked out each time prices update, about every 6 hours. Check back later.")));
+      return;
+    }
+    const day = (iso) => utcDay.format(new Date(iso + "T00:00:00Z"));
+    add(body, el("p", "For each of the last " + rec.days + " days, Best Guess made its call using only the prices up to that day, then checked the real price " + E.AHEAD + " days later. These are its calls from " + day(rec.from) + " to " + day(rec.to) + ", shown as they are, good or bad."));
+    add(body, el("h3", "All coins together"), statList(rec.all));
+    add(body, el("p", "A small sample: these calls cover only " + rec.all.weeks + " separate weeks. Coins move together and calls a day apart overlap, so thousands of calls are worth far fewer.", { class: "muted" }));
+    const mine = new Set(watchIds());
+    const group = (title, coins) => {
+      if (!coins.length) return;
+      const ul = el("ul", null, { class: "recs" });
+      for (const c of coins) {
+        const s = rec.coins.get(c.id);
+        const d = el("details", null, { class: "rec", "data-rec": c.id });
+        if (open.has(c.id)) d.open = true;
+        add(d, add(el("summary"),
+          el("span", c.symbol.slice(0, 4), { class: "badge", "aria-hidden": "true" }),
+          add(el("span", null, { class: "rmain" }), add(el("span", c.name, { class: "cname" }), el("span", ",", { class: "sr" })), el("span", coinRecordLine(s), { class: "csym" })),
+          chevron()));
+        add(d, add(el("div", null, { class: "recbody" }), s ? statList(s) : el("p", "There isn't enough price history yet to check its past calls.")));
+        add(ul, add(el("li"), d));
+      }
+      add(body, el("h3", title), ul);
+    };
+    group("Your coins", saved.coins.filter((c) => mine.has(c.id)));
+    group("Other coins", saved.coins.filter((c) => !mine.has(c.id)));
+    if (wasId) { const back = body.querySelector('details[data-rec="' + CSS.escape(wasId) + '"] summary'); if (back) back.focus({ preventScroll: true }); }
   }
 
   // ---- picking coins ----
@@ -1094,6 +1402,7 @@ const BestGuessEngine = (() => {
     save();
     watchChanged = true;
     renderToday();
+    renderRecord();
     renderWatchStatus();
   });
 
@@ -1126,12 +1435,16 @@ const BestGuessEngine = (() => {
       live.status === "ok" ? "Working. Checked " + ago(live.at) + "." :
       live.status === "failed" ? "Not working: " + live.error + (l ? " Last worked " + ago(l.at) + "." : "") :
       l ? "Last worked " + ago(l.at) + "." : "Not checked yet.";
+    $("ckRecord").textContent = !saved ? "Not loaded yet."
+      : saved.record ? "Ready: " + whole.format(saved.record.all.n) + " past calls checked, for " + saved.record.coins.size + " coins."
+      : "Not ready yet. It's worked out when prices update.";
     $("ckStore").textContent = saveText();
   }
 
   function render() {
     renderStatus();
     renderToday();
+    renderRecord();
     renderSheet(false);
   }
 

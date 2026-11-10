@@ -9,6 +9,7 @@ node_modules/
 dist/
 .DS_Store
 _site/
+prices.json
 previous.json
 __pycache__/
 *.tmp

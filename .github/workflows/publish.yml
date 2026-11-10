@@ -31,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 rebuild.py --check
-          node --test test_engine.mjs
+          node --test test_engine.mjs test_add_record.mjs
           python3 test_fetch_prices.py
 
       - name: Get the last published prices
@@ -44,6 +44,15 @@ jobs:
 
       - name: Fetch fresh prices
         run: python3 -I fetch_prices.py --previous previous.json --out _site/prices.json
+
+      # Replays the engine over the last 90 days and adds the results to prices.json, so phones don't have to.
+      # If it fails, prices are still published, and the app says the track record isn't ready.
+      - name: Add the track record
+        run: |
+          set -euo pipefail
+          if [ -f _site/prices.json ]; then
+            node add_record.mjs _site/prices.json || echo "::warning::The track record couldn't be worked out. Prices are published without it."
+          fi
 
       - name: Add the app
         run: |

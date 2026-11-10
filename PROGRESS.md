@@ -8,21 +8,22 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 ## Where things stand (Nov 10, 2026)
 - **Stage 1 (the pipes), version 0.1.0:** built and tested in headless Chrome with made-up prices (see CHANGELOG). Pages is on (source: GitHub Actions). The first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers, and published the site. **Stage 1 is done:** on a real iPhone (Nov 10, 02:22 UTC), About → Data check said "25 coins, updated 20 minutes ago" and "Live prices: Working," so CoinGecko allows the live check from a real phone browser.
 - **Stage 2 (the forecasting engine), version 0.2.0:** built and tested with made-up prices (see CHANGELOG). Each watchlist row shows its 7-day lean; tapping it opens the forecast (odds, confidence, best guess, likely range on a fan chart, key levels, why, how it works). Edit coins (1 to 10) and a Share button are in. **Stage 2 is done:** on a real iPhone (Nov 10), the forecasts looked right on real prices, and About → Data check showed 25 coins saved, live prices working and settings saving.
-- Stages 3 to 5 not started.
+- **Stage 3 (the Track record), version 0.3.0:** built and tested with made-up prices (see CHANGELOG). The Track record tab shows the 90-day replay for all coins and each coin, the record holds confidence down, and Publish works the replay out and adds it to prices.json. **Still to do:** the owner's iPhone check on the live site (Track record tab, About → Data check, VoiceOver). Until then it has only been seen on made-up prices.
+- Stages 4 and 5 not started.
 
 ## Where it lives
 - Repo: github.com/bestguess-apps/best-guess (its own GitHub org, apart from freeforgood-apps)
 - Website: https://bestguess-apps.github.io/best-guess/ (published by the Publish workflow, not from a branch)
 - Storage key: `best-guess-v1` (one small object: watchlist, text size, tab, last live prices). Cache prefix: `best-guess-`.
-- Files: `index.html` (the app; its first script block is the forecasting engine, `BestGuessEngine`), `test_engine.mjs` (engine tests, run by Publish), `sw.js`, `manifest.webmanifest`, icons, `rebuild.py` (lock and version), `fetch_prices.py` and `test_fetch_prices.py` (the price fetcher), `.github/workflows/publish.yml` and `tag-new-versions.yml`.
-- `prices.json` exists only on the website. It's made at publish time and never committed.
+- Files: `index.html` (the app; its first script block is the forecasting engine, `BestGuessEngine`), `test_engine.mjs` (engine tests, run by Publish), `add_record.mjs` and `test_add_record.mjs` (the publish step that adds the Track record to prices.json), `sw.js`, `manifest.webmanifest`, icons, `rebuild.py` (lock and version), `fetch_prices.py` and `test_fetch_prices.py` (the price fetcher), `.github/workflows/publish.yml` and `tag-new-versions.yml`.
+- `prices.json` exists only on the website. It's made at publish time and never committed. It holds the prices and, under `record`, the Track record.
 
 ## Next up
 1. ~~Finish stage 1~~ (done Nov 9).
 2. ~~Update the app skills~~ with what stage 1 proved (done: app-new-project has "Live outside data", with Best Guess as the reference).
 3. ~~Org security settings~~ on bestguess-apps and the Usage Saver org (done Nov 2026).
 4. ~~Stage 2, the forecasting engine~~ (done Nov 10, version 0.2.0, checked on a real iPhone).
-5. **Stage 3, Track record:** replay the engine over the last 90 days without letting it see the future (`prepare(samples, asOfDay)` plus the closes up to that day, the way `replay()` in test_engine.mjs does), compared with a coin flip and with "no change." Speed matters here: 90 days × 25 coins is about 2,250 forecasts, which would take several seconds on an older phone at today's speed. Either speed up the look-alike search or work the replay out on GitHub at publish time and add it to prices.json. Also let the track record feed confidence (a coin whose calls have been poor shouldn't say High).
+5. ~~Stage 3, Track record~~ (built Nov 10, version 0.3.0). **Waiting on the owner's iPhone check** of the live site.
 6. **Stage 4, Worth a look:** the day's 1 to 3 strongest, best-tested leans, or "Nothing stands out today."
 7. **Stage 5, first release:** self-test page (`#st-go`, `#st-sum`), toolkit release check, accessibility check, security release check, CHANGELOG, then the iPhone self-test and VoiceOver run.
 
@@ -59,12 +60,22 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
   - Forecast prices are rounded to 3 digits and key levels to 4: more digits would look more exact than a guess is.
   - Replays can't see the future: `prepare(samples, asOfDay)` only uses setups whose 7 days had ended by that day, and a test changes every later price to prove nothing moves.
   - It lives in its own script block in index.html (the app stays one file), and test_engine.mjs loads that block for `node --test`.
+- **The Track record (stage 3), and why:**
+  - **Worked out on GitHub, not on the phone** (the owner's pick). The 2,250 forecasts take about 1.5 seconds on a fast computer and would take several on an older phone, and the record is needed on every open because it feeds confidence. `add_record.mjs` runs in Publish after the fetch, with the engine code from index.html, and adds `record` to prices.json. If it fails, prices still publish and the app says the track record isn't ready.
+  - **The app treats the record as outside data:** whole numbers that must add up, or it isn't used at all. It stores counts only; the app works out percentages and verdicts with the engine's `judge()`, so the words can't disagree with the numbers.
+  - **Luck is judged by separate weeks, not raw calls.** 90 days of overlapping 7-day calls on coins that move together is about 13 examples, not 2,250. Measured on made-up markets: when coins move mostly together, judging by weeks is about right (a wrong "better or worse than a coin flip" 3% of the time); when they move less together it's stricter than needed. Real coins move together a lot, so it stays strict. That means a verdict needs a big gap from 50%, and most results will read "could still be luck." The raw counts are always shown.
+  - **"Too few to tell"** below 10 leans from 4 separate weeks (20 calls for the range and the best guess). Most single coins will say this, since most days are coin flips. That's honest, not a bug.
+  - **The cap on confidence:** leans right under 50% means Low at most; under 55% (the odds a lean needs) means no High. It goes by the coin's own leans when there are enough, otherwise by all coins together, and does nothing when neither has enough. It only lowers confidence, and never changes the lean or the odds.
+  - **"Leans by confidence" shows the look-alikes' own ratings,** before the cap. Capping inside the replay would need a track record of the track record, and a year of prices is too short for that. The screen says so.
+  - **A lean is right** when the price ended on its side 7 days later (a down lean counts if it didn't end higher). "How far off" is the average gap from the real price, as a share of the price on the day of the call.
+  - **Coin flip is the only yardstick for leans.** Not shown: how often prices simply rose in those 90 days, which would help read a one-sided market. Could be added later.
 - **Edit coins:** 1 to 10 coins from the menu, shown in size order. The last coin can't be removed, because an empty list would quietly fall back to the top 5.
 - **Share button, no donation button:** a tip jar was considered (Nov 2026) and left out: it breaks the "no payments" ground rule, looks like paying for tips on a money app, payouts need the owner's legal identity, and the fees eat most of a small tip. Share sends only the official link (share sheet, or copies the link on a tap), with no tracking or referral bits.
 - **Fonts:** the same built-in fonts as Till Payday (Atkinson Hyperlegible, Bricolage Grotesque, DM Mono; SIL Open Font License). Own colors (indigo), contrast computed in code.
 
 ## Known limits
-- How often forecasts are right has only been tested on made-up prices so far; on real prices they've only been looked at. The Track record (stage 3) is the real test, and it will be shown even if it's bad.
+- How often forecasts are right has only been tested on made-up prices in code. The Track record now shows it on real prices, on the live site only, and it's shown even if it's bad.
+- The Track record covers one 90-day stretch, about 13 separate weeks. A run of good or bad luck that long is possible, and the app says so.
 - A year of prices holds only about 50 separate weeks, so confidence stays modest on purpose, and most days say "coin flip."
 - GitHub Pages can't set headers, so the lock is a meta tag and `frame-ancestors` (clickjacking) isn't possible.
 - Scheduled runs can be late, and GitHub pauses them in public repos after 60 days without changes (see how-to-update.md).
