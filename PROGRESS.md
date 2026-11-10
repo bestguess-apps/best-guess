@@ -6,7 +6,7 @@ Read this and how-to-update.md before changing anything. Decisions below were ma
 A free crypto forecaster for friends and family. Pick coins from the top 25 and see which way each is leaning over the next 7 days, how confident that is, a likely price range, and how often the engine has been right before. Not financial advice. A simple web tool (project type 2), with live outside data.
 
 ## Where things stand (Nov 9, 2026)
-- **Stage 1 (the pipes), version 0.1.0:** built and tested in headless Chrome with made-up prices (see CHANGELOG). Pages is on (source: GitHub Actions). The first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers, and published the site. Waiting on: About → Data check on a real iPhone saying both saved and live prices work (this is the only test of the live check from a real browser).
+- **Stage 1 (the pipes), version 0.1.0:** built and tested in headless Chrome with made-up prices (see CHANGELOG). Pages is on (source: GitHub Actions). The first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers, and published the site. **Stage 1 is done:** on a real iPhone (Nov 10, 02:22 UTC), About → Data check said "25 coins, updated 20 minutes ago" and "Live prices: Working," so CoinGecko allows the live check from a real phone browser.
 - Stages 2 to 5 not started.
 
 ## Where it lives
@@ -17,7 +17,7 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 - `prices.json` exists only on the website. It's made at publish time and never committed.
 
 ## Next up
-1. **Finish stage 1:** turn on Pages (Settings → Pages → Source: GitHub Actions), run Publish, check the run, then About → Data check on the iPhone.
+1. ~~Finish stage 1~~ (done Nov 9).
 2. **Update the app skills** with what stage 1 proved: apps in other orgs, and apps with live outside data (privacy lock, honest promise, data checks, rate limits, publishing with Actions).
 3. **Org security settings:** match freeforgood-apps' settings on bestguess-apps and the Usage Saver org.
 4. **Stage 2, the forecasting engine:** for each coin, read a year of daily prices, size up the setup (trend vs 20- and 50-day averages, 7- and 30-day momentum, how much it swings, how stretched it is), find past look-alike setups and what happened 7 days later, then show: odds and a confidence level, a most-likely price and likely range for 7 days on a small fan chart, and key levels (recent highs and lows the price keeps bumping into). Plain functions with `node --test` tests. Also: editing the watchlist (up to 10 coins from the menu).
