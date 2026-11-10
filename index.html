@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-/IHkjyprSb1t1xnMMGZI/yxtaAZHpX7tw85GZsyx9qw=' 'sha256-tve7yEeUXHSkOQSuiNXmgaWNkALo5YdyvRZXSA2QzVQ='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-HueXCV24IGeIJfag5VuZbE4ZVNJQ7yt6QouJccMZ4xo=' 'sha256-z8BdoW9Of0QQRt7PsbT0eFNlOAKtV1tBaTgBjwIUCAs='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Free, private crypto odds with honest confidence levels and a track record. Not financial advice.">
 <meta name="theme-color" content="#F2F1F7" media="(prefers-color-scheme: light)">
@@ -141,6 +141,11 @@ h2 { font-family: var(--f-display); font-weight: 600; font-size: 1.125rem; margi
 .lean.up { color: var(--up); }
 .lean.down { color: var(--down); }
 .lean.flip, .lean.none { color: var(--muted); }
+.lean .tested { display: block; margin-top: 2px; color: var(--muted); font-weight: 400; }
+#lookBody { display: flex; flex-direction: column; gap: 10px; }
+#lookBody > p { margin: 0; }
+.nothing { font-family: var(--f-display); font-weight: 800; font-size: 1.375rem; line-height: 1.2; }
+.added:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 .badge { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--badge-bg); color: var(--badge-ink); font: 800 0.75rem/1 var(--f-display); letter-spacing: 0.02em; overflow: hidden; }
 .cname { font-weight: 700; overflow-wrap: anywhere; }
 .csym { color: var(--muted); font-size: 0.875rem; }
@@ -296,7 +301,8 @@ body.sheet-open { overflow: hidden; }
 
   <section class="panel" id="view-look" role="tabpanel" aria-labelledby="tab-look" hidden>
     <h2>Worth a look</h2>
-    <div class="card"><p>Coming soon: the day's strongest, best-tested leans, or a plain "Nothing stands out today" when nothing does.</p></div>
+    <div id="lookBody"><p class="muted">Loading prices…</p></div>
+    <p class="muted">A coin shows up here only when its 7-day lean has medium or high confidence, and past leans like it were right at least 55% of the time. Up to 3 a day, from all the coins Best Guess follows. Most days, few or none make it. Not financial advice.</p>
   </section>
 
   <section class="panel" id="view-record" role="tabpanel" aria-labelledby="tab-record" hidden>
@@ -323,6 +329,7 @@ body.sheet-open { overflow: hidden; }
   <h3>How the odds work</h3>
   <p>For each coin, Best Guess sizes up today's setup: the price against its 20- and 50-day averages, how far it moved in the last 7 and 30 days, how much it's swinging, and where it sits in its 30-day range. Then it finds the 50 moments in the past year, across all the coins it follows, that looked most like that, and checks where each price was 7 days later.</p>
   <p>Odds stay close to 50-50 unless those look-alikes clearly agree. Under 55% either way, it says "coin flip", and most days that's the honest answer. Confidence (low, medium or high) depends on how strongly they agree and how many different weeks they came from. Coins tend to move together, so ten coins on the same day count as one example.</p>
+  <p>Worth a look goes through every coin Best Guess follows and names up to 3 whose leans stand out: medium or high confidence, and past leans that were right at least 55% of the time (that coin's own when there are enough to tell, otherwise all coins together). When none do, it says "Nothing stands out today." Coins tend to move together, so two or three names on the same day are closer to one call than three.</p>
   <p>The Track record tab shows how its calls really did over the last 90 days, good or bad. That record also holds confidence down: a coin whose leans were right less than half the time stays at low confidence, and none can say high unless its leans were right at least 55% of the time.</p>
 
   <h3>Your privacy</h3>
@@ -408,6 +415,8 @@ const BestGuessEngine = (() => {
   const PROMISE = 0.8;      // the likely range should hold about 8 times in 10
   const CAP_LOW = 0.5;      // leans right less often than this: Low confidence at most
   const CAP_MEDIUM = 0.55;  // less often than this (the odds a lean needs): Medium at most
+  const PICKS = 3;          // Worth a look names this many coins at most
+  const PICK_RIGHT = 0.55;  // ...and only ones whose past leans were right at least this often (the odds a lean needs)
 
   function dayNum(iso) { return Math.floor(Date.parse(iso + "T00:00:00Z") / DAY_MS); }
   function dayIso(n) { return new Date(n * DAY_MS).toISOString().slice(0, 10); }
@@ -731,7 +740,38 @@ const BestGuessEngine = (() => {
     return rank[top] < rank[confidence] ? { confidence: top, held: by, right: s.right, leans: s.leans } : { confidence, held: null };
   }
 
+  // Worth a look: today's strongest, best-tested leans, at most PICKS of them. A lean gets in only when
+  // its confidence is Medium or High after the track record has had its say, and that record (the coin's
+  // own when there's enough of it, otherwise all coins together) was right at least 55% of the time.
+  // Why 55% and not 50%: on made-up markets with no pattern, 50% named a coin on about 1 day in 3.
+  // With no record to go by there are no picks: an untested lean can't be called well tested.
+  // list: [{ id, fc, score }], where fc is a forecast and score is that coin's own record, if any.
+  // Strongest first: by confidence, then by the odds. Ties keep the order they came in.
+  function standouts(list, allScore, max = PICKS) {
+    const rank = { low: 1, medium: 2, high: 3 };
+    const out = { picks: [], checked: 0, flips: 0, leans: 0, untested: 0, passed: 0 };
+    const ok = [];
+    for (const it of Array.isArray(list) ? list : []) {
+      const fc = it && it.fc;
+      if (!fc || !fc.ok) continue;
+      out.checked++;
+      if (fc.lean !== "up" && fc.lean !== "down") { out.flips++; continue; }
+      out.leans++;
+      const by = enoughLeans(it.score) ? "coin" : enoughLeans(allScore) ? "all" : null;
+      if (!by) { out.untested++; continue; }
+      const s = by === "coin" ? it.score : allScore;
+      const confidence = capConfidence(fc.confidence, it.score, allScore).confidence;
+      if (!(rank[confidence] >= rank.medium) || s.right / s.leans < PICK_RIGHT) continue;
+      ok.push({ id: it.id, lean: fc.lean, odds: fc.odds, strength: fc.lean === "up" ? fc.odds : 100 - fc.odds, confidence, by, right: s.right, leans: s.leans });
+    }
+    ok.sort((a, b) => rank[b.confidence] - rank[a.confidence] || b.strength - a.strength);
+    out.passed = ok.length;
+    out.picks = ok.slice(0, Math.max(0, max));
+    return out;
+  }
+
   return {
+    PICKS, PICK_RIGHT, standouts,
     AHEAD, LOOKALIKES, MIN_DAYS, LEVEL_DAYS, RECORD_DAYS, MIN_LEANS, MIN_CALLS, MIN_WEEKS,
     dayNum, dayIso, separateWeeks, setupAt, buildLibrary, prepare, forecast, forecastCoin, keyLevels, fanAt,
     replayCalls, scoreCalls, trackRecord, judge, capConfidence,
@@ -742,7 +782,7 @@ const BestGuessEngine = (() => {
 (() => {
   "use strict";
   // ---- settings ----
-  const APP_VERSION = "0.3.0";
+  const APP_VERSION = "0.4.0";
   const LOCAL_KEY = "best-guess-v1";
   const PRICES_URL = "prices.json";
   const LIVE_URL = "https://api.coingecko.com/api/v3/simple/price";
@@ -1164,7 +1204,7 @@ const BestGuessEngine = (() => {
     if (!saved) {
       const card = el("div", null, { class: "card" });
       add(card, el("p", savedError || "Loading prices…"));
-      if (savedError) add(card, el("button", "Try again", { class: "primary", type: "button", id: "retryBtn" }));
+      if (savedError) add(card, el("button", "Try again", { class: "primary", type: "button", "data-retry": "" }));
       add(body, card);
       return;
     }
@@ -1172,24 +1212,75 @@ const BestGuessEngine = (() => {
     const list = el("ul", null, { class: "coins", "aria-label": "Your coins" });
     for (const id of watchIds()) {
       const c = byId.get(id);
-      if (!c) continue;
-      const s = shown(c);
-      const ch = fmtChange(s.change);
-      const ln = leanLine(forecastFor(c));
-      // The button's name is its visible words; hidden commas give VoiceOver a pause between parts
-      const pause = (t) => el("span", t, { class: "sr" });
-      const btn = el("button", null, { class: "coin", type: "button", "data-coin": c.id });
-      const main = add(el("span", null, { class: "cmain" }),
-        add(el("span", c.name, { class: "cname" }), pause(",")),
-        add(el("span", c.symbol + " · #" + (c.rank < 99999 ? c.rank : "?") + " by size", { class: "csym" }), pause(",")));
-      const chg = el("span", null, { class: "chg " + ch.cls });
-      if (ch.arrow) add(chg, el("span", ch.arrow + " ", { "aria-hidden": "true" }));
-      add(chg, document.createTextNode(ch.text), pause((s.change != null && ch.cls !== "flat" ? " in 24 hours" : "") + "."));
-      const nums = add(el("span", null, { class: "cnums" }), add(el("span", fmtUsd(s.price), { class: "cprice" }), pause(",")), chg);
-      add(btn, el("span", c.symbol.slice(0, 4), { class: "badge", "aria-hidden": "true" }), main, nums, chevron(), el("span", ln.text, { class: "lean " + ln.cls }));
-      add(list, add(el("li"), btn));
+      if (c) add(list, add(el("li"), coinRow(c)));
     }
     add(body, list);
+    if (was) { const b = body.querySelector('[data-coin="' + CSS.escape(was) + '"]'); if (b) b.focus({ preventScroll: true }); }
+  }
+  // One coin as a row you can tap for its forecast (Today and Worth a look). tested: an extra line under the lean.
+  function coinRow(c, tested) {
+    const s = shown(c);
+    const ch = fmtChange(s.change);
+    const ln = leanLine(forecastFor(c));
+    // The button's name is its visible words; hidden commas give VoiceOver a pause between parts
+    const pause = (t) => el("span", t, { class: "sr" });
+    const btn = el("button", null, { class: "coin", type: "button", "data-coin": c.id });
+    const main = add(el("span", null, { class: "cmain" }),
+      add(el("span", c.name, { class: "cname" }), pause(",")),
+      add(el("span", c.symbol + " · #" + (c.rank < 99999 ? c.rank : "?") + " by size", { class: "csym" }), pause(",")));
+    const chg = el("span", null, { class: "chg " + ch.cls });
+    if (ch.arrow) add(chg, el("span", ch.arrow + " ", { "aria-hidden": "true" }));
+    add(chg, document.createTextNode(ch.text), pause((s.change != null && ch.cls !== "flat" ? " in 24 hours" : "") + "."));
+    const nums = add(el("span", null, { class: "cnums" }), add(el("span", fmtUsd(s.price), { class: "cprice" }), pause(",")), chg);
+    const lean = el("span", ln.text, { class: "lean " + ln.cls });
+    if (tested) add(lean, pause("."), el("span", tested, { class: "tested" }));
+    return add(btn, el("span", c.symbol.slice(0, 4), { class: "badge", "aria-hidden": "true" }), main, nums, chevron(), lean);
+  }
+
+  // ---- Worth a look: the day's strongest, best-tested leans, from every coin (the engine's standouts() decides) ----
+  const COUNT_WORD = ["none", "one", "two", "three"];
+  function renderLook() {
+    const body = $("lookBody");
+    const was = body.contains(document.activeElement) ? document.activeElement.getAttribute("data-coin") : null;
+    body.textContent = "";
+    if (!saved) {
+      const card = el("div", null, { class: "card" });
+      add(card, el("p", savedError || "Loading prices…"));
+      if (savedError) add(card, el("button", "Try again", { class: "primary", type: "button", "data-retry": "" }));
+      add(body, card);
+      return;
+    }
+    const rec = saved.record;
+    let look;
+    try {
+      look = E.standouts(saved.coins.map((c) => ({ id: c.id, fc: forecastFor(c), score: rec ? rec.coins.get(c.id) : null })), rec ? rec.all : null);
+    } catch (e) {
+      look = { picks: [], checked: 0, flips: 0, leans: 0, untested: 0, passed: 0 };
+    }
+    const byId = new Map(saved.coins.map((c) => [c.id, c]));
+    const picks = look.picks.filter((p) => byId.has(p.id));
+    const coins = (n) => whole.format(n) + (n === 1 ? " coin" : " coins");
+    if (!picks.length) {
+      const card = add(el("div", null, { class: "card" }), el("p", "Nothing stands out today.", { class: "nothing" }));
+      if (!look.checked) add(card, el("p", "There are no forecasts to go through right now. Try Refresh, or check back later."));
+      else if (!look.leans) add(card, el("p", "Best Guess checked " + coins(look.checked) + ", and " + (look.checked === 1 ? "it's a coin flip" : "every one is a coin flip") + " for the next 7 days."));
+      else if (!rec) add(card, el("p", "Best Guess checked " + coins(look.checked) + ", and " + whole.format(look.leans) + (look.leans === 1 ? " leans" : " lean") + " one way. But the track record isn't ready yet, so no lean can be called well tested. It's worked out each time prices update. Check back later."));
+      else if (look.untested === look.leans) add(card, el("p", "Best Guess checked " + coins(look.checked) + ", and " + whole.format(look.leans) + (look.leans === 1 ? " leans" : " lean") + " one way. But there are too few past leans to test " + (look.leans === 1 ? "it" : "them") + " against, so nothing can be called well tested yet."));
+      else add(card, el("p", "Best Guess checked " + coins(look.checked) + ". " + (look.flips ? whole.format(look.flips) + (look.flips === 1 ? " is a coin flip" : " are coin flips") + ", and " : "") + whole.format(look.leans) + (look.leans === 1 ? " leans" : " lean") + " one way, but not clearly enough, or without a good enough track record, to stand out."));
+      add(card, el("p", "That's normal. Most days the honest answer is that nothing does. You can still see every coin's lean on Today.", { class: "muted" }));
+      add(body, card);
+      return;
+    }
+    add(body, el("p", "Best Guess checked " + coins(look.checked) + ". " + (picks.length === 1 ? "One stands out" : cap(COUNT_WORD[picks.length]) + " stand out") + " today, strongest first."
+      + (look.passed > picks.length ? " " + whole.format(look.passed - picks.length) + " more made the bar; these are the strongest." : "")));
+    const list = el("ul", null, { class: "coins", "aria-label": "Worth a look today" });
+    for (const p of picks) {
+      const tested = (p.by === "coin" ? "Its past leans were right " : "All coins\u2019 past leans were right ") + outOf(p.right, p.leans) + " times (" + share(p.right, p.leans) + ")";
+      add(list, add(el("li"), coinRow(byId.get(p.id), tested)));
+    }
+    add(body, list);
+    if (picks.length > 1) add(body, el("p", "Coins tend to move together, so treat these as closer to one call than " + COUNT_WORD[picks.length] + ".", { class: "muted" }));
+    add(body, el("p", "Tap a coin for its full forecast. Standing out is still a guess, and it can be wrong.", { class: "muted" }));
     if (was) { const b = body.querySelector('[data-coin="' + CSS.escape(was) + '"]'); if (b) b.focus({ preventScroll: true }); }
   }
 
@@ -1197,6 +1288,8 @@ const BestGuessEngine = (() => {
   let coinOpen = null;
   function renderCoin() {
     const body = $("coinBody");
+    // if the Add button (or its "added" note) had focus, give it back after the redraw
+    const held = body.contains(document.activeElement) && document.activeElement.id ? document.activeElement.id : "";
     body.textContent = "";
     const c = saved && saved.coins.find((x) => x.id === coinOpen);
     if (!c) {
@@ -1208,7 +1301,8 @@ const BestGuessEngine = (() => {
     const s = shown(c), fc = forecastFor(c);
     add(body, el("p", c.symbol + " · " + fmtUsd(s.price) + " · " + (s.live ? "live price" : "price from " + ago(saved.fetched)), { class: "muted" }));
     const box = el("div", null, { class: "leanbox" });
-    add(body, box);
+    add(body, box, followRow(c));
+    if (held) { const back = $(held); if (back) back.focus({ preventScroll: true }); }
     if (!fc.ok) {
       add(box, el("p", "No forecast yet", { class: "leanbig" }), el("p", NO_FORECAST[fc.reason] || NO_FORECAST.error));
       return;
@@ -1251,6 +1345,32 @@ const BestGuessEngine = (() => {
       fc.weeks + " different weeks. Odds stay close to 50-50 unless they clearly agree."));
 
     add(body, el("h3", "Its track record"), el("p", coinRecordText(c)));
+  }
+
+  // A coin opened from Worth a look may not be on the watchlist yet: offer to add it
+  let justAdded = null;
+  function followRow(c) {
+    const mine = watchIds();
+    if (mine.includes(c.id)) {
+      if (justAdded !== c.id) return null;
+      return el("p", "Added to your coins. It's on Today now." + (canSave && saveOk ? "" : " " + saveText()), { class: "muted added", id: "addCoinDone", tabindex: "-1" });
+    }
+    if (mine.length >= MAX_WATCH) return el("p", "Your list is full (" + MAX_WATCH + " of " + MAX_WATCH + "). To follow this coin, take one off in Edit coins on Today first.", { class: "muted" });
+    return el("button", "Add to my coins", { class: "ghost", type: "button", id: "addCoinBtn" });
+  }
+  function addOpenCoin() {
+    const c = saved && saved.coins.find((x) => x.id === coinOpen);
+    if (!c) return;
+    const picked = new Set(watchIds());
+    if (picked.has(c.id) || picked.size >= MAX_WATCH) { renderSheet(false); return; }
+    picked.add(c.id);
+    state.watch = saved.coins.map((x) => x.id).filter((id) => picked.has(id));
+    save();
+    watchChanged = true;
+    justAdded = c.id;
+    render();
+    const done = $("addCoinDone");
+    if (done) done.focus();
   }
 
   // ---- the track record (worked out at publish time; the app only shows it) ----
@@ -1444,6 +1564,7 @@ const BestGuessEngine = (() => {
   function render() {
     renderStatus();
     renderToday();
+    renderLook();
     renderRecord();
     renderSheet(false);
   }
@@ -1458,7 +1579,7 @@ const BestGuessEngine = (() => {
   }
 
   // ---- sheets ----
-  let openSheet = null, sheetOpener = null;
+  let openSheet = null, sheetOpener = null, sheetOpenerBox = "";
   function renderSheet(full) {
     if (!openSheet) return;
     if (openSheet.id === "aboutSheet") renderAbout();
@@ -1470,6 +1591,8 @@ const BestGuessEngine = (() => {
     if (!SHEETS.includes(id)) return;
     if (openSheet) hideSheet(false);
     sheetOpener = opener || document.activeElement;
+    const from = sheetOpener && sheetOpener.closest ? sheetOpener.closest("#todayBody, #lookBody") : null;
+    sheetOpenerBox = from ? from.id : "";
     openSheet = $(id);
     renderSheet(true);
     openSheet.hidden = false;
@@ -1489,18 +1612,22 @@ const BestGuessEngine = (() => {
       // a coin's row may have been redrawn while its sheet was open, so find it again
       let back = sheetOpener;
       const coin = back.getAttribute && back.getAttribute("data-coin");
-      if (!back.isConnected && coin) back = document.querySelector('#todayBody [data-coin="' + CSS.escape(coin) + '"]');
+      if (!back.isConnected && coin && sheetOpenerBox) back = document.querySelector("#" + sheetOpenerBox + ' [data-coin="' + CSS.escape(coin) + '"]');
+      // a Worth a look row can be gone by now (the day's picks changed), so fall back to the open tab
+      if (!back || !back.isConnected) back = $("tab-" + state.tab);
       if (back && back.isConnected) back.focus({ preventScroll: true });
     }
-    if (was === "watchSheet" && watchChanged) { watchChanged = false; checkLive(false); }
+    justAdded = null;
+    if ((was === "watchSheet" || was === "coinSheet") && watchChanged) { watchChanged = false; checkLive(false); }
   }
   document.addEventListener("click", (e) => {
     const o = e.target.closest("[data-open]");
     if (o) { showSheet(o.getAttribute("data-open"), o); return; }
     const c = e.target.closest("[data-coin]");
     if (c) { coinOpen = c.getAttribute("data-coin"); showSheet("coinSheet", c); return; }
+    if (e.target.closest("#addCoinBtn")) { addOpenCoin(); return; }
     if (e.target.closest("[data-share]")) { shareApp(); return; }
-    if (e.target.closest("#retryBtn")) refresh(true);
+    if (e.target.closest("[data-retry]")) refresh(true);
   });
   document.querySelectorAll(".sheet [data-close]").forEach((b) => b.addEventListener("click", () => hideSheet()));
   $("sheetScrim").addEventListener("click", () => hideSheet());

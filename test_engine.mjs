@@ -448,3 +448,133 @@ test("the record is honest: no pattern reads as a coin flip, a real pattern show
   assert.notEqual(j.leans, "worse");
   assert.notEqual(j.leans, "few");
 });
+
+// ---- Worth a look ----
+const rec = (leans, right, leanWeeks = 8) => ({ leans, right, leanWeeks });
+const call = (id, lean, odds, confidence, score) => ({ id, fc: { ok: true, lean, odds, confidence }, score });
+
+test("Worth a look keeps only clear, well-tested leans, strongest first", () => {
+  const good = rec(40, 26), soso = rec(40, 21), poor = rec(40, 16), thin = rec(6, 6);
+  const list = [
+    call("flip", "flip", 52, "none", good),          // no lean
+    call("low", "up", 58, "low", good),              // a lean, but low confidence
+    call("poor", "up", 70, "high", poor),            // its own leans were right under half the time
+    call("med-up", "up", 60, "medium", good),
+    call("high-down", "down", 38, "high", good),     // 62% odds it's lower
+    call("med-down", "down", 33, "medium", good),    // 67% odds it's lower: the strongest Medium
+    call("soso", "up", 80, "high", soso),            // right 52.5% of the time: under the 55% a pick needs
+    call("thin", "up", 61, "medium", thin),          // too few of its own leans: goes by all coins
+    { id: "broken", fc: { ok: false, reason: "short-history" }, score: good },
+    null,
+  ];
+  const look = E.standouts(list, good, 10);
+  assert.deepEqual(look.picks.map((p) => p.id), ["high-down", "med-down", "thin", "med-up"]);
+  assert.deepEqual(look.picks[0], { id: "high-down", lean: "down", odds: 38, strength: 62, confidence: "high", by: "coin", right: 26, leans: 40 });
+  assert.deepEqual([look.picks[2].by, look.picks[2].right, look.picks[2].leans], ["all", 26, 40]);
+  assert.deepEqual([look.checked, look.flips, look.leans, look.untested, look.passed], [8, 1, 7, 0, 4]);
+  // by default it names 3 at most, and they're the same top 3
+  const top = E.standouts(list, good);
+  assert.equal(E.PICKS, 3);
+  assert.deepEqual(top.picks.map((p) => p.id), ["high-down", "med-down", "thin"]);
+  assert.equal(top.passed, 4);
+  assert.equal(E.PICK_RIGHT, 0.55);
+  // the order coins arrive in doesn't change who gets picked
+  assert.deepEqual(E.standouts(list.slice().reverse(), good).picks.map((p) => p.id), ["high-down", "med-down", "thin"]);
+  // when all coins together did poorly, a coin without enough of its own record can't stand out
+  assert.deepEqual(E.standouts([call("thin", "up", 61, "medium", thin)], poor).picks, []);
+});
+
+test("Worth a look says nothing when nothing is tested or nothing leans, and never crashes", () => {
+  const good = rec(40, 26), thin = rec(6, 6);
+  const empty = { picks: [], checked: 0, flips: 0, leans: 0, untested: 0, passed: 0 };
+  for (const junk of [undefined, null, [], "coins", [null, 5, {}, { fc: null }, { fc: { ok: false } }]]) assert.deepEqual(E.standouts(junk, good), empty);
+  // every coin a coin flip
+  const flips = E.standouts([call("a", "flip", 50, "none", good), call("b", "flip", 46, "none", good)], good);
+  assert.deepEqual([flips.picks.length, flips.checked, flips.flips, flips.leans], [0, 2, 2, 0]);
+  // strong leans, but no track record at all (the publish step failed), or too thin a one
+  for (const all of [null, undefined, thin, rec(40, 30, 3)]) {
+    const look = E.standouts([call("a", "up", 75, "high", null), call("b", "down", 20, "high", thin)], all);
+    assert.deepEqual([look.picks.length, look.leans, look.untested], [0, 2, 2]);
+  }
+  // past leans right exactly 55% of the time are in; one short of that is out
+  assert.equal(E.standouts([call("a", "up", 60, "medium", rec(40, 22))], null).picks.length, 1);
+  assert.equal(E.standouts([call("a", "up", 60, "medium", rec(40, 21))], null).picks.length, 0);
+  // it never raises confidence: every pick is Medium or High, and no higher than the forecast said
+  const rank = { low: 1, medium: 2, high: 3 };
+  for (const conf of ["low", "medium", "high"]) for (const score of [good, rec(40, 21), rec(40, 16), thin, null]) {
+    for (const p of E.standouts([call("a", "up", 66, conf, score)], good).picks) {
+      assert.ok(rank[p.confidence] >= 2 && rank[p.confidence] <= rank[conf], conf + " became " + p.confidence);
+    }
+  }
+});
+
+test("planted bugs in Worth a look get caught", () => {
+  const good = rec(40, 26);
+  const list = [call("low", "up", 58, "low", good), call("med", "up", 60, "medium", good), call("high", "down", 40, "high", good),
+    call("down", "down", 30, "medium", good), call("extra", "up", 56, "medium", good)];
+  const ids = (e) => e.standouts(list, good).picks.map((p) => p.id);
+  assert.deepEqual(ids(E), ["high", "down", "med"]);
+  // 1. the confidence bar dropped
+  assert.equal(E.standouts(list, good).passed, 4);
+  assert.equal(planted("rank[confidence] >= rank.medium", "rank[confidence] >= rank.low").standouts(list, good).passed, 5, "a missing confidence bar wasn't caught");
+  // 2. weakest first
+  assert.notDeepEqual(ids(planted("rank[b.confidence] - rank[a.confidence] || b.strength - a.strength", "rank[a.confidence] - rank[b.confidence] || a.strength - b.strength")), ids(E), "a backwards order wasn't caught");
+  // 3. a down lean's strength read off the odds of going up
+  assert.notDeepEqual(ids(planted('strength: fc.lean === "up" ? fc.odds : 100 - fc.odds', "strength: fc.odds")), ids(E), "a down lean ranked by its up odds wasn't caught");
+  // 4. the limit of 3 ignored
+  assert.equal(planted("ok.slice(0, Math.max(0, max))", "ok").standouts(list, good).picks.length, 4, "a missing limit wasn't caught");
+  // 5. a poor record let through
+  const poor = [call("poor", "up", 70, "medium", rec(40, 21))];
+  assert.equal(E.standouts(poor, null).picks.length, 0);
+  assert.equal(planted("s.right / s.leans < PICK_RIGHT) continue;", "s.right / s.leans < CAP_LOW) continue;").standouts(poor, null).picks.length, 1, "a so-so record getting through wasn't caught");
+});
+
+// One day's Worth a look on a made-up market, seeing nothing after day i: the forecasts, and the record up to then
+function lookOn(coins, i, span = 45) {
+  const cut = coins.map((c) => ({ id: c.id, daily: { start: START, closes: c.daily.closes.slice(0, i) } }));
+  const record = E.trackRecord(cut, span);
+  const by = new Map(record.coins.map((c) => [c.id, c]));
+  const prep = E.prepare(E.buildLibrary(cut), dayOf(i));
+  const list = coins.map((c) => ({ id: c.id, fc: E.forecastCoin(prep, { start: START, closes: c.daily.closes.slice(0, i) }, c.daily.closes[i]), score: by.get(c.id) }));
+  return E.standouts(list, record.all);
+}
+function lookDays(opts, seeds) {
+  const t = { days: 0, quiet: 0, picks: 0, right: 0 };
+  for (const seed of seeds) {
+    const coins = world({ seed, ...opts });
+    for (let i = 300; i < 357; i += 8) {
+      const look = lookOn(coins, i);
+      assert.ok(look.picks.length <= E.PICKS);
+      t.days++;
+      if (!look.picks.length) t.quiet++;
+      for (const p of look.picks) {
+        assert.ok(p.confidence === "medium" || p.confidence === "high");
+        const px = coins.find((c) => c.id === p.id).daily.closes;
+        t.picks++;
+        if ((p.lean === "up") === (px[i + E.AHEAD] > px[i])) t.right++;
+      }
+    }
+  }
+  return t;
+}
+
+test("Worth a look is honest: mostly quiet with no pattern, and right more often than not when one is there", () => {
+  // with no real pattern, most days should say "Nothing stands out today"
+  const none = lookDays({}, [3000, 3001, 3002, 3003]);
+  assert.ok(none.quiet / none.days >= 0.65, "quiet on only " + none.quiet + " of " + none.days + " days with no pattern");
+  // with a planted pattern it speaks up more, and its picks are right well over half the time
+  const real = lookDays({ momentum: 0.6 }, [3000, 3001]);
+  assert.ok(real.picks >= 8, real.picks + " picks in " + real.days + " days");
+  assert.ok(real.right / real.picks >= 0.65, "right " + real.right + " of " + real.picks);
+  assert.ok(real.quiet / real.days < none.quiet / none.days, "no busier with a real pattern than without one");
+});
+
+test("25 forecasts (every coin, for Worth a look) are quick enough for an older phone", () => {
+  const coins = world({ seed: 12 });
+  const t0 = performance.now();
+  const prep = E.prepare(E.buildLibrary(coins), dayOf(365));
+  const list = coins.map((c) => ({ id: c.id, fc: E.forecastCoin(prep, c.daily, c.daily.closes.at(-1)), score: null }));
+  E.standouts(list, null);
+  const ms = performance.now() - t0;
+  assert.ok(ms < 1500, ms.toFixed(0) + " ms");
+});

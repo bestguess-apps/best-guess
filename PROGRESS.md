@@ -9,7 +9,8 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 - **Stage 1 (the pipes), version 0.1.0:** built and tested in headless Chrome with made-up prices (see CHANGELOG). Pages is on (source: GitHub Actions). The first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers, and published the site. **Stage 1 is done:** on a real iPhone (Nov 10, 02:22 UTC), About → Data check said "25 coins, updated 20 minutes ago" and "Live prices: Working," so CoinGecko allows the live check from a real phone browser.
 - **Stage 2 (the forecasting engine), version 0.2.0:** built and tested with made-up prices (see CHANGELOG). Each watchlist row shows its 7-day lean; tapping it opens the forecast (odds, confidence, best guess, likely range on a fan chart, key levels, why, how it works). Edit coins (1 to 10) and a Share button are in. **Stage 2 is done:** on a real iPhone (Nov 10), the forecasts looked right on real prices, and About → Data check showed 25 coins saved, live prices working and settings saving.
 - **Stage 3 (the Track record), version 0.3.0:** built and tested with made-up prices (see CHANGELOG). The Track record tab shows the 90-day replay for all coins and each coin, the record holds confidence down, and Publish works the replay out and adds it to prices.json. **Still to do:** the owner's iPhone check on the live site (Track record tab, About → Data check, VoiceOver). Until then it has only been seen on made-up prices.
-- Stages 4 and 5 not started.
+- **Stage 4 (Worth a look), version 0.4.0:** built and tested with made-up prices (see CHANGELOG). The Worth a look tab names up to 3 coins, out of all 25, whose leans stand out, or says "Nothing stands out today" and why. A forecast opened from it has an "Add to my coins" button when the coin isn't on the watchlist. **Still to do:** the owner's iPhone check on the live site (the Worth a look tab, adding a coin from a forecast, VoiceOver), together with the stage 3 check.
+- Stage 5 not started.
 
 ## Where it lives
 - Repo: github.com/bestguess-apps/best-guess (its own GitHub org, apart from freeforgood-apps)
@@ -24,7 +25,7 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 3. ~~Org security settings~~ on bestguess-apps and the Usage Saver org (done Nov 2026).
 4. ~~Stage 2, the forecasting engine~~ (done Nov 10, version 0.2.0, checked on a real iPhone).
 5. ~~Stage 3, Track record~~ (built Nov 10, version 0.3.0). **Waiting on the owner's iPhone check** of the live site.
-6. **Stage 4, Worth a look:** the day's 1 to 3 strongest, best-tested leans, or "Nothing stands out today."
+6. ~~Stage 4, Worth a look~~ (built Nov 10, version 0.4.0). **Waiting on the owner's iPhone check** of the live site.
 7. **Stage 5, first release:** self-test page (`#st-go`, `#st-sum`), toolkit release check, accessibility check, security release check, CHANGELOG, then the iPhone self-test and VoiceOver run.
 
 ## Ground rules
@@ -69,6 +70,14 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
   - **"Leans by confidence" shows the look-alikes' own ratings,** before the cap. Capping inside the replay would need a track record of the track record, and a year of prices is too short for that. The screen says so.
   - **A lean is right** when the price ended on its side 7 days later (a down lean counts if it didn't end higher). "How far off" is the average gap from the real price, as a share of the price on the day of the call.
   - **Coin flip is the only yardstick for leans.** Not shown: how often prices simply rose in those 90 days, which would help read a one-sided market. Could be added later.
+- **Worth a look (stage 4), and why:**
+  - **All 25 coins, not just the watchlist** (the owner's pick): that's what makes the tab different from Today. It uses the saved prices for coins off the watchlist; the live check still asks only about the watchlist, so nothing new leaves the phone.
+  - **The bar** (the owner's picks): medium or high confidence after the track record's cap, and past leans right at least 55% of the time, going by the coin's own leans when there are enough, otherwise all coins together. No track record to test against means no picks. Up to 3, strongest first (confidence, then odds).
+  - **55%, not 50%:** the first plan was "not worse than a coin flip." On made-up markets with no real pattern that named a coin on about 1 day in 3, with picks right half the time. At 55% (the same odds a lean needs) it was about 1 day in 4, and real patterns barely changed. "Proven better than luck" was offered too, and not picked: the tab would be empty almost every day.
+  - **The engine decides, not the screen:** `standouts()` is a plain function with tests, planted bugs and an honesty test. The screen only shows what it returns, plus the counts behind an empty day.
+  - **It says when picks aren't separate:** two or three names get a line that coins move together, so they're closer to one call.
+  - **"Add to my coins"** shows in a forecast only when that coin isn't on the watchlist (the owner's pick), and a full list gets a plain message instead. After adding, a short note takes the focus so VoiceOver reads it.
+  - **Not built:** an "On your list" tag on picks, and a "Closest today" near miss on empty days. Both were offered and not picked.
 - **Edit coins:** 1 to 10 coins from the menu, shown in size order. The last coin can't be removed, because an empty list would quietly fall back to the top 5.
 - **Share button, no donation button:** a tip jar was considered (Nov 2026) and left out: it breaks the "no payments" ground rule, looks like paying for tips on a money app, payouts need the owner's legal identity, and the fees eat most of a small tip. Share sends only the official link (share sheet, or copies the link on a tap), with no tracking or referral bits.
 - **Fonts:** the same built-in fonts as Till Payday (Atkinson Hyperlegible, Bricolage Grotesque, DM Mono; SIL Open Font License). Own colors (indigo), contrast computed in code.
@@ -76,6 +85,8 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 ## Known limits
 - How often forecasts are right has only been tested on made-up prices in code. The Track record now shows it on real prices, on the live site only, and it's shown even if it's bad.
 - The Track record covers one 90-day stretch, about 13 separate weeks. A run of good or bad luck that long is possible, and the app says so.
+- Worth a look can still name a coin by luck. On made-up markets with no real pattern it did on about 1 day in 4, and those picks were coin flips. Lucky stretches bunch up: once the 90-day record looks good by chance, picks can show for days in a row. The screen says a pick is still a guess.
+- A coin added from Worth a look shows its saved price until the next live check (at most one a minute).
 - A year of prices holds only about 50 separate weeks, so confidence stays modest on purpose, and most days say "coin flip."
 - GitHub Pages can't set headers, so the lock is a meta tag and `frame-ancestors` (clickjacking) isn't possible.
 - Scheduled runs can be late, and GitHub pauses them in public repos after 60 days without changes (see how-to-update.md).
