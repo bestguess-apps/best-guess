@@ -34,8 +34,31 @@ jobs:
             exit 1
           fi
           tag="v$version"
-          if gh api "repos/$REPO/git/ref/tags/$tag" --silent 2>/dev/null; then
-            echo "$tag already exists, so there's nothing to do."
+          existing=$(gh api "repos/$REPO/git/ref/tags/$tag" --jq '.object.type + " " + .object.sha' 2>/dev/null || true)
+          if [ -n "$existing" ]; then
+            old_type=${existing%% *}
+            old=${existing#* }
+            # Normally the tag is already in main's history, so there's nothing to do.
+            # After a history rewrite (like scrubbing personal info), the old tag points to a commit
+            # that's no longer in main. Then the tag moves here, so the old commit isn't kept around.
+            if [ "$old_type" != "commit" ]; then
+              echo "$tag already exists, so there's nothing to do."
+              exit 0
+            fi
+            if cmp=$(gh api "repos/$REPO/compare/$old...$SHA" --jq '.status' 2>&1); then
+              case "$cmp" in
+                ahead|identical|behind)
+                  echo "$tag already exists, so there's nothing to do."
+                  exit 0 ;;
+                diverged) ;;
+                *) echo "Unexpected answer comparing $tag with this push: $cmp"; exit 1 ;;
+              esac
+            elif ! printf '%s' "$cmp" | grep -q "No common ancestor"; then
+              echo "Couldn't check $tag against this push: $cmp"
+              exit 1
+            fi
+            gh api -X PATCH "repos/$REPO/git/refs/tags/$tag" -f sha="$SHA" -F force=true --silent
+            echo "Moved $tag from $old (no longer in main's history) to $SHA."
             exit 0
           fi
           gh api "repos/$REPO/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" --silent

@@ -48,6 +48,7 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 - **No coin logos:** they'd load from CoinGecko's image servers and share people's internet address. Symbol badges instead.
 - **No feedback email in v1:** friends and family tell the person who shared it. That also avoids tying it to the freeforgood-apps email.
 - **Commits:** same as the other apps: the GitHub account's private noreply address as author, Claude as committer (so they show Verified), dates in UTC, no Claude links. Chosen knowing it shows the same account behind both orgs.
+- **History was rewritten once (Nov 10, 2026)** to scrub a personal detail from an early PROGRESS.md line. Claude sessions can't delete tags, so "Tag new versions" here has one addition to Till Payday's version: if a version tag points to a commit that's no longer in main's history (only after a rewrite like this), it moves the tag to the new commit, so the old commit isn't kept around. Normal tags are never touched, and if GitHub can't answer, it stops without changing anything.
 - **Fonts:** the same built-in fonts as Till Payday (Atkinson Hyperlegible, Bricolage Grotesque, DM Mono; SIL Open Font License). Own colors (indigo), contrast computed in code.
 
 ## Known limits
