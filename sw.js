@@ -1,5 +1,5 @@
-// Best Guess offline support (version 0.4.0)
-const CACHE = "best-guess-0.4.0";
+// Best Guess offline support (version 1.0.0)
+const CACHE = "best-guess-1.0.0";
 const PREFIX = "best-guess-";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./favicon-32.png"];
 

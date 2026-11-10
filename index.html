@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-HueXCV24IGeIJfag5VuZbE4ZVNJQ7yt6QouJccMZ4xo=' 'sha256-z8BdoW9Of0QQRt7PsbT0eFNlOAKtV1tBaTgBjwIUCAs='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-HueXCV24IGeIJfag5VuZbE4ZVNJQ7yt6QouJccMZ4xo=' 'sha256-z5BtkMuw/o4pKxSzodlUsvhvfRs+O+oHR8OBopX3FvQ='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Free, private crypto odds with honest confidence levels and a track record. Not financial advice.">
 <meta name="theme-color" content="#F2F1F7" media="(prefers-color-scheme: light)">
@@ -244,6 +244,7 @@ h2 { font-family: var(--f-display); font-weight: 600; font-size: 1.125rem; margi
 .checks dt { font-weight: 700; }
 .checks dd { margin: 2px 0 0; color: var(--ink); }
 .version { color: var(--muted); }
+.textlink { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
 body.sheet-open { overflow: hidden; }
 
 .toast {
@@ -347,6 +348,8 @@ body.sheet-open { overflow: hidden; }
     <div><dt>Settings</dt><dd id="ckStore">Saving on this device</dd></div>
   </dl>
   <button class="ghost" type="button" id="checkAgain">Check again</button>
+  <p>Something not working right? The self-test taps through Best Guess with made-up prices, right here on this device, and makes a report you can copy and send to the person who shared it with you.</p>
+  <p><a class="textlink" id="selfTestLink" href="selftest.html">Run self-test</a></p>
 
   <h3>Put it on your Home Screen</h3>
   <p>On iPhone or iPad: open this page in Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>. It works offline too, with the last prices it saw. Your watchlist there is separate from Safari's.</p>
@@ -782,7 +785,7 @@ const BestGuessEngine = (() => {
 (() => {
   "use strict";
   // ---- settings ----
-  const APP_VERSION = "0.4.0";
+  const APP_VERSION = "1.0.0";
   const LOCAL_KEY = "best-guess-v1";
   const PRICES_URL = "prices.json";
   const LIVE_URL = "https://api.coingecko.com/api/v3/simple/price";
@@ -794,7 +797,6 @@ const BestGuessEngine = (() => {
   const TABS = ["today", "look", "record"];
   const SHEETS = ["aboutSheet", "coinSheet", "watchSheet"];
   const SHARE_URL = "https://bestguess-apps.github.io/best-guess/";
-  const DAY_MS = 86400000;
   const SIZES = ["", "lg", "xl"], SIZE_NAMES = ["normal", "large", "extra large"];
   const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
   const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1120,7 +1122,9 @@ const BestGuessEngine = (() => {
     const whose = fc.held.held === "coin" ? c.name + "'s leans" : "leans across all coins";
     return cap(fc.confidence) + " confidence: look-alikes agree more strongly than that, but " + whose + " were right only " + fc.held.right + " of " + fc.held.leans + " times in the last " + saved.record.days + " days. That holds confidence down.";
   }
-  function weekOut() { return dayFmt.format(new Date(Date.now() + E.AHEAD * DAY_MS)); }
+  // The same date next week on this device's calendar. setDate keeps the clock time, so a daylight saving change in
+  // between can't push it a day off (adding 7 × 24 hours did, near midnight). Date.now lets the self-test try other days.
+  function weekOut() { const d = new Date(Date.now()); d.setDate(d.getDate() + E.AHEAD); return dayFmt.format(d); }
   function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
   function vsText(v, n) { return Math.abs(v) < 0.0005 ? "right at its " + n + "-day average" : pct.format(Math.abs(v) * 100) + "% " + (v > 0 ? "above" : "below") + " its " + n + "-day average"; }
   function moveText(v) { return Math.abs(v) < 0.0005 ? "flat" : (v > 0 ? "up " : "down ") + pct.format(Math.abs(v) * 100) + "%"; }

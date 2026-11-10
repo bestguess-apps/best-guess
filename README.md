@@ -11,6 +11,7 @@ Free crypto odds, honestly. See which way a few coins are leaning, why, and how 
 - No accounts, ads or tracking. Your watchlist and settings save only on your device.
 - Add it to your Home Screen and it works like an app, even offline, with the last prices it saw.
 - A Share button sends the official link, with nothing about you attached.
+- A self-test (About → Run self-test) taps through the app on your phone with made-up coins and prices, then gives you a report to copy and send to the person who shared Best Guess with you. It never touches your real coins.
 
 ## Privacy, in plain words
 
