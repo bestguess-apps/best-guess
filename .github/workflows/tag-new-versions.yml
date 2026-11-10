@@ -1,0 +1,42 @@
+# Adds a version tag (like v1.1.4) whenever a new version of the app reaches main.
+# The version comes from APP_VERSION in index.html. It uses no outside actions and installs nothing.
+name: Tag new versions
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: tag-new-versions
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write # only to add the tag
+    steps:
+      - name: Tag this version if it isn't tagged yet
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # Read APP_VERSION from index.html as it is in this push
+          app=$(gh api -H "Accept: application/vnd.github.raw" "repos/$REPO/contents/index.html?ref=$SHA")
+          version=$(printf '%s\n' "$app" | grep -oE 'APP_VERSION = "[0-9]+\.[0-9]+\.[0-9]+"' | head -n 1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
+          if [ -z "$version" ]; then
+            echo "Couldn't find APP_VERSION in index.html, so no tag was added."
+            exit 1
+          fi
+          tag="v$version"
+          if gh api "repos/$REPO/git/ref/tags/$tag" --silent 2>/dev/null; then
+            echo "$tag already exists, so there's nothing to do."
+            exit 0
+          fi
+          gh api "repos/$REPO/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" --silent
+          echo "Added $tag at $SHA."

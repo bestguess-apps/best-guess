@@ -1,0 +1,70 @@
+# Publishes the website with fresh prices.
+# Runs when a new version reaches main, every 6 hours, and on demand (Actions tab → Publish → Run workflow).
+# The price fetcher only reads from CoinGecko's free keyless API. No keys or secrets are used.
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 */6 * * *"   # 00:17, 06:17, 12:17 and 18:17 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the app and the fetcher
+        run: |
+          set -euo pipefail
+          python3 rebuild.py --check
+          python3 test_fetch_prices.py
+
+      - name: Get the last published prices
+        run: |
+          set -euo pipefail
+          if ! curl -fsSL --max-time 30 --max-filesize 5000000 -o previous.json "https://bestguess-apps.github.io/best-guess/prices.json"; then
+            rm -f previous.json
+            echo "No published prices yet."
+          fi
+
+      - name: Fetch fresh prices
+        run: python3 -I fetch_prices.py --previous previous.json --out _site/prices.json
+
+      - name: Add the app
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp index.html sw.js manifest.webmanifest icon-192.png icon-512.png icon-maskable-512.png apple-touch-icon.png favicon-32.png _site/
+          ls -la _site
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write     # to publish the site
+      id-token: write  # lets GitHub confirm the publish came from this workflow
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
