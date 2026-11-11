@@ -1,33 +1,9 @@
 # Best Guess: progress
 
-Read this and how-to-update.md before changing anything. Decisions below were made on purpose; don't "fix" them without asking.
+Read this and how-to-update.md before changing anything. Decisions below were made on purpose; don't "fix" them without asking. The steady brief comes first; the changing status is at the bottom, and every version's full test notes are in CHANGELOG.md.
 
 ## What it is
 A free crypto forecaster for friends and family. Pick coins from the top 25 and see which way each is leaning over the next 7 days, how confident that is, a likely price range, and how often the engine has been right before. Not financial advice. A simple web tool (project type 2), with live outside data.
-
-## Where things stand (Nov 10, 2026, version 1.0.0)
-- **Stage 1 (the pipes), version 0.1.0:** built and tested in headless Chrome with made-up prices (see CHANGELOG). Pages is on (source: GitHub Actions). The first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers, and published the site. **Stage 1 is done:** on a real iPhone (Nov 10, 02:22 UTC), About → Data check said "25 coins, updated 20 minutes ago" and "Live prices: Working," so CoinGecko allows the live check from a real phone browser.
-- **Stage 2 (the forecasting engine), version 0.2.0:** built and tested with made-up prices (see CHANGELOG). Each watchlist row shows its 7-day lean; tapping it opens the forecast (odds, confidence, best guess, likely range on a fan chart, key levels, why, how it works). Edit coins (1 to 10) and a Share button are in. **Stage 2 is done:** on a real iPhone (Nov 10), the forecasts looked right on real prices, and About → Data check showed 25 coins saved, live prices working and settings saving.
-- **Stage 3 (the Track record), version 0.3.0:** built and tested with made-up prices (see CHANGELOG). The Track record tab shows the 90-day replay for all coins and each coin, the record holds confidence down, and Publish works the replay out and adds it to prices.json. **Checked on a real iPhone (Nov 10):** the owner went through the live site at version 0.4.0 (About and Data check, Worth a look, Track record, VoiceOver) and reported everything looked good.
-- **Stage 4 (Worth a look), version 0.4.0:** built and tested with made-up prices (see CHANGELOG). The Worth a look tab names up to 3 coins, out of all 25, whose leans stand out, or says "Nothing stands out today" and why. A forecast opened from it has an "Add to my coins" button when the coin isn't on the watchlist. **Checked on a real iPhone (Nov 10):** the owner went through the live site at version 0.4.0 (About and Data check, Worth a look, Track record, VoiceOver) and reported everything looked good. Worth a look said "Nothing stands out today" at first; once a pick showed up, the owner tapped Add to my coins and the coin landed on Today, so both states have been seen on a real phone.
-- **Stage 5 (self-test and first release), version 1.0.0:** built and tested (see CHANGELOG). About → Run self-test opens `selftest.html`, which taps through the app with made-up coins and prices, checks the forecasts, the track record and dates a second way, tries the privacy lock, checks what comes back on reopening, and ends with a report and a Copy report button. A date bug it covers was fixed: in daylight saving zones, the forecast's date could be a day off near midnight in the week before a clock change. The v1.0.0 tag is on GitHub (added by the tag workflow). **Self-test on a real iPhone (Nov 10):** passed all 351 checks on the live site in Safari and again from the Home Screen, with real prices loaded and live prices working (details in CHANGELOG). The daylight saving dates were checked in headless Chrome only. **VoiceOver on a real iPhone (Nov 10):** the owner reported it works. **Stage 5 is done.**
-
-## Where it lives
-- Repo: github.com/bestguess-apps/best-guess (its own GitHub org, apart from freeforgood-apps)
-- Website: https://bestguess-apps.github.io/best-guess/ (published by the Publish workflow, not from a branch)
-- Storage key: `best-guess-v1` (one small object: watchlist, text size, tab, last live prices). Cache prefix: `best-guess-`. The self-test uses `best-guess-selftest-v1` (localStorage) and `best-guess-selftest-v1-run` (sessionStorage), and wipes only those.
-- Files: `index.html` (the app; its first script block is the forecasting engine, `BestGuessEngine`), `selftest.html` (the self-test, built by `rebuild.py` from the app plus its own two scripts), `test_engine.mjs` (engine tests, run by Publish), `add_record.mjs` and `test_add_record.mjs` (the publish step that adds the Track record to prices.json), `sw.js`, `manifest.webmanifest`, icons, `rebuild.py` (lock and version), `fetch_prices.py` and `test_fetch_prices.py` (the price fetcher), `.github/workflows/publish.yml` and `tag-new-versions.yml`.
-- `prices.json` exists only on the website. It's made at publish time and never committed. It holds the prices and, under `record`, the Track record.
-
-## Next up
-1. ~~Finish stage 1~~ (done Nov 9).
-2. ~~Update the app skills~~ with what stage 1 proved (done: app-new-project has "Live outside data", with Best Guess as the reference).
-3. ~~Org security settings~~ on bestguess-apps and the Usage Saver org (done Nov 2026).
-4. ~~Stage 2, the forecasting engine~~ (done Nov 10, version 0.2.0, checked on a real iPhone).
-5. ~~Stage 3, Track record~~ (done Nov 10, version 0.3.0, checked on a real iPhone).
-6. ~~Stage 4, Worth a look~~ (done Nov 10, version 0.4.0, checked on a real iPhone).
-7. ~~Stage 5, first release~~ (built Nov 10, version 1.0.0): self-test page, toolkit release check, accessibility check, security release check, CHANGELOG all done.
-8. ~~The owner's iPhone run of 1.0.0~~ (done Nov 10: the self-test passed in Safari and from the Home Screen, and VoiceOver works).
 
 ## Ground rules
 - Free, with no ads, accounts, tracking, exchange or referral links, wallets or payments. Never "buy" or "sell" wording, no "guaranteed", no AI hype.
@@ -35,6 +11,13 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 - Honest numbers: when history says about 50%, say "coin flip." Show the track record even when it's bad.
 - Keep the creator anonymous: no real names, emails or Claude links in code, commits or anything public. Commits in UTC.
 - Verify before calling anything tested, and say exactly what ran.
+
+## Where it lives
+- Repo: github.com/bestguess-apps/best-guess (its own GitHub org, apart from freeforgood-apps)
+- Website: https://bestguess-apps.github.io/best-guess/ (published by the Publish workflow, not from a branch)
+- Storage key: `best-guess-v1` (one small object: watchlist, text size, tab, last live prices). Cache prefix: `best-guess-`. The self-test uses `best-guess-selftest-v1` (localStorage) and `best-guess-selftest-v1-run` (sessionStorage), and wipes only those.
+- Files: `index.html` (the app; its first script block is the forecasting engine, `BestGuessEngine`), `selftest.html` (the self-test, built by `rebuild.py` from the app plus its own two scripts), `test_engine.mjs` (engine tests, run by Publish), `add_record.mjs` and `test_add_record.mjs` (the publish step that adds the Track record to prices.json), `sw.js`, `manifest.webmanifest`, icons, `rebuild.py` (lock and version), `fetch_prices.py` and `test_fetch_prices.py` (the price fetcher), `.github/workflows/publish.yml` and `tag-new-versions.yml`.
+- `prices.json` exists only on the website. It's made at publish time and never committed. It holds the prices and, under `record`, the Track record.
 
 ## Decisions
 - **Its own GitHub org (bestguess-apps), not freeforgood-apps:** keeps a money-related app apart from the free-for-everyone apps. It also gets its own web address, so no storage is shared with other apps.
@@ -100,3 +83,13 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 - GitHub Pages can't set headers, so the lock is a meta tag and `frame-ancestors` (clickjacking) isn't possible.
 - Scheduled runs can be late, and GitHub pauses them in public repos after 60 days without changes (see how-to-update.md).
 - CoinGecko says keyless access isn't meant for production, and GitHub's shared runner addresses may get "busy" answers more often. The fetcher waits, retries and falls back to the last good prices.
+
+## Where things stand (Nov 10, 2026)
+
+- **Live version:** 1.0.0, at https://bestguess-apps.github.io/best-guess/. All five stages are done (the pipes, the forecasting engine, the Track record, Worth a look, and the self-test with the first release). The v1.0.0 tag is on GitHub (added by the tag workflow).
+- **Tested:** on a real iPhone (Nov 10, 2026), the self-test passed all 351 checks on the live site in Safari and again from the Home Screen, with real prices loaded and live prices working, and the owner reported VoiceOver works. The daylight saving dates (the 1.0.0 fix for a forecast date a day off near midnight in the week before a clock change) were checked in headless Chrome only. CHANGELOG.md has each version's details.
+- **Live data from a real phone:** the first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers. On a real iPhone, About → Data check then said "Live prices: Working", so CoinGecko allows the live check from a phone browser. Worth a look has been seen on a real phone in both states ("Nothing stands out today", and a pick added with Add to my coins).
+
+## Next up
+
+- Nothing is queued. Done so far (Nov 9 to 10, 2026): all five stages, the owner's iPhone run of 1.0.0, the app skills' "Live outside data" section (app-new-project, with Best Guess as the reference), and the org security settings on bestguess-apps and the Usage Saver org.
