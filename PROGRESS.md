@@ -106,8 +106,8 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 
 ## Where things stand (Nov 12, 2026)
 
-- **Live version:** 1.2.0 once its Publish run passes, at https://bestguess-apps.github.io/best-guess/ (In short, the made-up $100, last week's call, the big swing note, Before you decide, and two facts next to Not financial advice on every forecast). 1.1.0 added the old-prices warning, the easy guess and the keepalive job; 1.0.0 was the first full release.
-- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details): 41 engine and publish-step tests, 21 fetcher tests, the self-test in 7 time zones at 3 sizes (536 checks, 608 with daylight saving), and the accessibility checker on every screen and sheet. Not yet on a real iPhone.
+- **Live version:** 1.2.0, at https://bestguess-apps.github.io/best-guess/ (In short, the made-up $100, last week's call, the big swing note, Before you decide, and two facts next to Not financial advice on every forecast). 1.1.0 added the old-prices warning, the easy guess and the keepalive job; 1.0.0 was the first full release.
+- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details): 41 engine and publish-step tests, 21 fetcher tests, the self-test in 7 time zones at 3 sizes (536 checks, 608 with daylight saving), and the accessibility checker on every screen and sheet. On GitHub: Publish passed and the v1.2.0 tag is there. Not yet on a real iPhone.
 - **Earlier:** 1.1.0 passed all 384 self-test checks on a real iPhone (iOS 18.7, from the Home Screen) with real and live prices. 1.0.0 passed 351, in Safari and from the Home Screen, and the owner reported VoiceOver works.
 
 ## Next up
