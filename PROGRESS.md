@@ -103,5 +103,5 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 
 ## Next up
 
-- **One Done when line left for 1.1.0:** "In the Track record, I can see how the leans did next to just guessing the same way every time." The owner still has to look on the iPhone (Track record tab, the "Just saying…" line under "Leans that were right"). The other line ("If prices stop updating, the top of the app tells me within 2 days, even with live prices on") passed: the self-test checks it with made-up prices 3 and 8 days old, and it passed on the owner's iPhone.
+- Both Done when lines for 1.1.0 passed on the owner's iPhone (the old-prices warning, through the self-test, and the easy guess line, seen in the Track record). The self-test keeps checking both.
 - **Check the keepalive job on its daily run:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.
