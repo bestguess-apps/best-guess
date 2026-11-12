@@ -36,6 +36,7 @@ Results are tied to the version and date they were run. When the app changes, th
 
 | Version | Date | Browser and device | Result |
 |---|---|---|---|
+| 1.2.1 | Nov 12, 2026 | The published GitHub Pages site, Safari engine (WebKit) on a real iPhone (iOS 18.7), opened from the Home Screen | ✓ Passed, 537 automated checks |
 | 1.2.1 | Nov 12, 2026 | Chrome (Blink engine) on Linux, headless: in 7 time zones (5 with daylight saving, 2 without), at 3 sizes | ✓ Passed, 609 automated checks in each zone with daylight saving and 537 in each without |
 | 1.2.0 | Nov 12, 2026 | The published GitHub Pages site, Safari engine (WebKit) on a real iPhone (iOS 18.7), opened from the Home Screen | ✓ Passed, 536 automated checks |
 | 1.2.0 | Nov 12, 2026 | Chrome (Blink engine) on Linux, headless: in 7 time zones (5 with daylight saving, 2 without), at 3 sizes | ✓ Passed, 608 automated checks in each zone with daylight saving and 536 in each without |

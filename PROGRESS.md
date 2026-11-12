@@ -109,12 +109,11 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 ## Where things stand (Nov 12, 2026)
 
 - **Live version:** 1.2.1, at https://bestguess-apps.github.io/best-guess/. It adds Terms of use to About. 1.2.0 added In short, the made-up $100, last week's call, the big swing note, Before you decide, and two facts next to Not financial advice on every forecast; 1.1.0 added the old-prices warning, the easy guess and the keepalive job; 1.0.0 was the first full release.
-- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details): 41 engine and publish-step tests, 21 fetcher tests, the self-test in 7 time zones at 3 sizes (537 checks, 609 with daylight saving), and the accessibility checker on the main screen, About and the self-test's first screen. Not yet run on a real iPhone.
+- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details): 41 engine and publish-step tests, 21 fetcher tests, the self-test in 7 time zones at 3 sizes (537 checks, 609 with daylight saving), and the accessibility checker on the main screen, About and the self-test's first screen. On GitHub: Publish passed and the v1.2.1 tag is there. On a real iPhone (iOS 18.7, from the Home Screen), the self-test passed all 537 checks on the live site, with real and live prices working.
 - **1.2.0:** every screen and sheet passed the accessibility checker, and on a real iPhone (iOS 18.7, from the Home Screen) the self-test passed all 536 checks on the live site, with real and live prices working.
 - **Earlier:** 1.1.0 passed all 384 self-test checks on a real iPhone (iOS 18.7, from the Home Screen) with real and live prices. 1.0.0 passed 351, in Safari and from the Home Screen, and the owner reported VoiceOver works.
 
 ## Next up
 
-- **Run the 1.2.1 self-test on the iPhone** (About → Run self-test, on the live site), then add its row to the README's **Tested on** and its result to CHANGELOG.md and here.
 - Both Done when lines for 1.2.0 passed on the owner's iPhone (In short at the top; the $100 line, last week's call and Before you decide further down). The self-test keeps checking all of them.
 - **Check the keepalive job on its daily run:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.
