@@ -98,12 +98,10 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 ## Where things stand (Nov 12, 2026)
 
 - **Live version:** 1.1.0, at https://bestguess-apps.github.io/best-guess/ (the old-prices warning and pause, the easy guess in the Track record, and the keepalive job). 1.0.0 was the first full release with all five stages.
-- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details), and on GitHub: Publish passed, the v1.1.0 tag is there, the published prices have the new count, and the keepalive job passed when Publish was started on demand (the workflow showed as on). Not yet on a real iPhone at 1.1.0, and the keepalive job hasn't been seen on its daily 00:17 UTC run yet.
+- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details), and on GitHub: Publish passed, the v1.1.0 tag is there, the published prices have the new count, and the keepalive job passed when Publish was started on demand (the workflow showed as on). On a real iPhone (iOS 18.7, from the Home Screen), the self-test passed all 384 checks on the live site, with real prices and live prices working. The keepalive job hasn't been seen on its daily 00:17 UTC run yet.
 - **Earlier:** 1.0.0 passed all 351 self-test checks on a real iPhone (Nov 10, 2026), in Safari and from the Home Screen, with real prices and live prices working, and the owner reported VoiceOver works.
 
 ## Next up
 
-- **The owner's iPhone check of 1.1.0** (About → Run self-test on the live site), with these Done when lines:
-  - If prices stop updating, the top of the app tells me within 2 days, even with live prices on. (The self-test checks this with made-up prices 3 and 8 days old.)
-  - In the Track record, I can see how the leans did next to just guessing the same way every time.
+- **One Done when line left for 1.1.0:** "In the Track record, I can see how the leans did next to just guessing the same way every time." The owner still has to look on the iPhone (Track record tab, the "Just saying…" line under "Leans that were right"). The other line ("If prices stop updating, the top of the app tells me within 2 days, even with live prices on") passed: the self-test checks it with made-up prices 3 and 8 days old, and it passed on the owner's iPhone.
 - **Check the keepalive job on its daily run:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.
