@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-dQjE07LoLOBS3gOSTzPLIAp4dqD2k/y4LQUuNk/CTY8=' 'sha256-d5LkIfP6UI9YNAmxfL0uTRC+o+QpfyXo492RADgIqLA='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-dQjE07LoLOBS3gOSTzPLIAp4dqD2k/y4LQUuNk/CTY8=' 'sha256-Lp5ihi3FQgNiD3yHdXQtf9r42VNT5lKr3VMEWWsvk20='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Free, private crypto odds with honest confidence levels and a track record. Not financial advice.">
 <meta name="theme-color" content="#F2F1F7" media="(prefers-color-scheme: light)">
@@ -372,6 +372,9 @@ body.sheet-open { overflow: hidden; }
   <h3>Share it</h3>
   <p>Know someone who'd like it? Send them the link. Nothing about you goes with it.</p>
   <button class="ghost" type="button" data-share>Share Best Guess</button>
+
+  <h3>Terms of use</h3>
+  <p id="aboutTerms">Best Guess is free to use and is provided “as is,” without warranties of any kind. Its odds are a best guess from past prices, not financial advice, and they can be wrong.</p>
 
   <h3>Where it comes from</h3>
   <p>Price data from <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer">CoinGecko</a>. Best Guess isn't affiliated with CoinGecko.</p>
@@ -900,7 +903,7 @@ const BestGuessEngine = (() => {
 (() => {
   "use strict";
   // ---- settings ----
-  const APP_VERSION = "1.2.0";
+  const APP_VERSION = "1.2.1";
   const LOCAL_KEY = "best-guess-v1";
   const PRICES_URL = "prices.json";
   const LIVE_URL = "https://api.coingecko.com/api/v3/simple/price";

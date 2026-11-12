@@ -1,5 +1,10 @@
 # Best Guess: changelog
 
+## 1.2.1 (Nov 12, 2026)
+- New: About has a short Terms of use: Best Guess is free to use and provided "as is," without warranties of any kind, and its odds are a best guess from past prices, not financial advice, and can be wrong.
+- Nothing else changed in the app, and nothing new leaves your device.
+- Tested: engine and publish-step tests: 41 passed, and fetcher tests: 21 passed. The self-test passed in headless Chrome in 7 time zones (5 with daylight saving: 609 checks each; 2 without: 537), at 3 sizes, with 1 new check that About has the terms of use. Both bugs planted on purpose for it (the terms reworded, and the terms gone) were caught. The toolkit release check passed every line: versions agree, privacy lock fresh on both pages, self-test at 3 sizes (537 checks), the accessibility checker found nothing on the main screen, About and the self-test's first screen at 4 sizes in light and dark, and no security leads in the changes since 1.2.0. Screenshots of About at 390px in light mode and 320px in dark mode showed the new section matching the ones around it. Not yet run on a real iPhone.
+
 ## 1.2.0 (Nov 12, 2026)
 - New: forecasts are easier to understand. Everything new is about how much to trust today's guess, never what to do with a coin.
 - "In short" at the top of every forecast: one plain sentence rolling up the lean, how confident it is and how past leans did, like "Leaning up a little, but its past leans were right 52% of the time, about what a coin flip gets. Treat it as a hint." It says so plainly when past leans did no better than a coin flip, or no better than just guessing up (or down) every time.

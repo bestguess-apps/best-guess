@@ -90,7 +90,8 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
   - **Before you decide is a fold-out** (the owner's pick) near the bottom of every forecast, closed each time a forecast opens and kept open through a live-price redraw. The 3 questions are the owner's. No checkboxes, since nothing would be saved.
   - **Two facts with "Not financial advice"** (the owner's pick of both): the coin's biggest 7-day drop and how often it was lower a week later, from its last 365 daily prices (`pastYear()`). A shorter history says "In its last N days of prices." This replaced the long sentence repeated at the bottom of every forecast; "Never put in money you can't afford to lose" now lives in the checklist's first question.
   - **Offered and not picked:** a one-line summary on Today, a first-open tour, and a reading-level pass on all wording.
-- **README.md follows the toolkit's README outline** (`templates/README-outline.md`, Nov 12, 2026): the same sections in the same order as the owner's other apps, so they read alike. Every line comes from the app's own words, this file or CHANGELOG.md, so when the app's wording changes, change the README to match. Two sections differ on purpose: **Feedback** points to the person who shared it (no feedback email, see above), and there's no **Terms of use**, because the app has none yet. **Tested on** starts at 1.0.0, when the self-test arrived.
+- **README.md follows the toolkit's README outline** (`templates/README-outline.md`, Nov 12, 2026): the same sections in the same order as the owner's other apps, so they read alike. Every line comes from the app's own words, this file or CHANGELOG.md, so when the app's wording changes, change the README to match. **Feedback** differs on purpose: it points to the person who shared it (no feedback email, see above). **Tested on** starts at 1.0.0, when the self-test arrived.
+- **Terms of use in About (1.2.1),** so all the owner's apps have them: free to use, "as is," without warranties, and the odds are a best guess, not financial advice, and can be wrong. Worded like the other apps' terms. The README's Terms of use section copies it, and the self-test checks it's there.
 - **Fonts:** the same built-in fonts as Till Payday (Atkinson Hyperlegible, Bricolage Grotesque, DM Mono; SIL Open Font License). Own colors (indigo), contrast computed in code.
 
 ## Known limits
@@ -107,11 +108,13 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 
 ## Where things stand (Nov 12, 2026)
 
-- **Live version:** 1.2.0, at https://bestguess-apps.github.io/best-guess/ (In short, the made-up $100, last week's call, the big swing note, Before you decide, and two facts next to Not financial advice on every forecast). 1.1.0 added the old-prices warning, the easy guess and the keepalive job; 1.0.0 was the first full release.
-- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details): 41 engine and publish-step tests, 21 fetcher tests, the self-test in 7 time zones at 3 sizes (536 checks, 608 with daylight saving), and the accessibility checker on every screen and sheet. On GitHub: Publish passed and the v1.2.0 tag is there. On a real iPhone (iOS 18.7, from the Home Screen), the self-test passed all 536 checks on the live site, with real and live prices working.
+- **Live version:** 1.2.1, at https://bestguess-apps.github.io/best-guess/. It adds Terms of use to About. 1.2.0 added In short, the made-up $100, last week's call, the big swing note, Before you decide, and two facts next to Not financial advice on every forecast; 1.1.0 added the old-prices warning, the easy guess and the keepalive job; 1.0.0 was the first full release.
+- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details): 41 engine and publish-step tests, 21 fetcher tests, the self-test in 7 time zones at 3 sizes (537 checks, 609 with daylight saving), and the accessibility checker on the main screen, About and the self-test's first screen. Not yet run on a real iPhone.
+- **1.2.0:** every screen and sheet passed the accessibility checker, and on a real iPhone (iOS 18.7, from the Home Screen) the self-test passed all 536 checks on the live site, with real and live prices working.
 - **Earlier:** 1.1.0 passed all 384 self-test checks on a real iPhone (iOS 18.7, from the Home Screen) with real and live prices. 1.0.0 passed 351, in Safari and from the Home Screen, and the owner reported VoiceOver works.
 
 ## Next up
 
+- **Run the 1.2.1 self-test on the iPhone** (About → Run self-test, on the live site), then add its row to the README's **Tested on** and its result to CHANGELOG.md and here.
 - Both Done when lines for 1.2.0 passed on the owner's iPhone (In short at the top; the $100 line, last week's call and Before you decide further down). The self-test keeps checking all of them.
 - **Check the keepalive job on its daily run:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.

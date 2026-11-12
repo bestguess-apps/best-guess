@@ -36,6 +36,7 @@ Results are tied to the version and date they were run. When the app changes, th
 
 | Version | Date | Browser and device | Result |
 |---|---|---|---|
+| 1.2.1 | Nov 12, 2026 | Chrome (Blink engine) on Linux, headless: in 7 time zones (5 with daylight saving, 2 without), at 3 sizes | ✓ Passed, 609 automated checks in each zone with daylight saving and 537 in each without |
 | 1.2.0 | Nov 12, 2026 | The published GitHub Pages site, Safari engine (WebKit) on a real iPhone (iOS 18.7), opened from the Home Screen | ✓ Passed, 536 automated checks |
 | 1.2.0 | Nov 12, 2026 | Chrome (Blink engine) on Linux, headless: in 7 time zones (5 with daylight saving, 2 without), at 3 sizes | ✓ Passed, 608 automated checks in each zone with daylight saving and 536 in each without |
 | 1.1.0 | Nov 12, 2026 | The published GitHub Pages site, Safari engine (WebKit) on a real iPhone (iOS 18.7), opened from the Home Screen | ✓ Passed, 384 automated checks |
@@ -82,6 +83,10 @@ Best Guess was built with help from AI (Claude, made by Anthropic). Its engine h
 Best Guess is shared among friends and family, so there's no feedback email. Ideas or problems? Tell the person who shared it with you. If something isn't working, run the self-test and send them the report.
 
 Best Guess is a one-person volunteer project, so fixes can take a while. Please don't send personal details you don't want to share.
+
+## Terms of use
+
+Free to use. Provided "as is," without warranties of any kind. Best Guess's odds are a best guess from past prices, not financial advice, and they can be wrong.
 
 ## Files
 
