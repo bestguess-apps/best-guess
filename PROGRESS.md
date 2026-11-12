@@ -104,4 +104,12 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 ## Next up
 
 - Both Done when lines for 1.1.0 passed on the owner's iPhone (the old-prices warning, through the self-test, and the easy guess line, seen in the Track record). The self-test keeps checking both.
+- **1.2.0, planned (the owner's picks, Nov 12, 2026), all in one release:** make forecasts easier to understand. The guiding idea: the direction Best Guess gives is how much to trust today's guess, never what to do with a coin. No buy or sell wording, alerts or price targets (ground rules). Summaries must be allowed to say plainly when the leans aren't beating simple guessing.
+  - **"In short" line** at the top of each forecast: one plain sentence rolling up the lean, confidence and track record (for example, "Leaning up a little, but calls like this have been right about half the time. Treat it as a hint."). The engine picks the wording, with tests, like `standouts()`.
+  - **Risk in dollars:** the likely range for a made-up $100, downside first ("in a week it'd likely be worth $88 to $109; about 1 time in 10, less than $88"). Same numbers as the range, from the fan's 10% line.
+  - **Last week's call, checked:** what Best Guess said for that coin 7 days ago and whether it turned out right, worked out the way `replayCalls()` does (no peeking).
+  - **Big swing note:** a plain line when a coin is moving much more than usual (the setup's "swings now vs usual").
+  - **Before you decide:** a short checklist about the person, not the coin (can you afford to lose it, will you need it soon, would a 30% drop next week be okay), linked from every forecast. Plus a shorter "Not financial advice" line on every forecast, paired with one real fact, instead of the same sentence repeated.
+  - Offered and not picked: a one-line summary on Today, a first-open tour, and a reading-level pass on all wording.
+  - Done when lines get drafted and okayed in the build chat.
 - **Check the keepalive job on its daily run:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.
