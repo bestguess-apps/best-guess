@@ -380,7 +380,7 @@ test("planted bugs get caught: a replay that peeks, and a score that's backwards
   const peekLibrary = planted("const prep = prepare(lib, day);", "const prep = prepare(lib, day + 30);");
   assert.ok(futureLeaks(peekLibrary, coins, 40, 340).leaks > 0, "a library that peeks 30 days ahead wasn't caught");
   // 2. the coin's own prices run 3 days past the day of the call
-  const peekPrices = planted("{ closes: c.px.slice(0, i) }, c.px[i]", "{ closes: c.px.slice(0, i + 3) }, c.px[i + 3]");
+  const peekPrices = planted("{ closes: px.slice(0, i) }, px[i]", "{ closes: px.slice(0, i + 3) }, px[i + 3]");
   assert.ok(futureLeaks(peekPrices, coins, 40, 340).leaks > 0, "prices that run 3 days ahead weren't caught");
   // 3. right and wrong swapped
   const backwards = planted('(c.lean === "up") === (c.later > c.price)', '(c.lean === "up") === (c.later < c.price)');
@@ -636,4 +636,175 @@ test("planted bugs in the easy guess and old prices get caught", () => {
   const now = Date.UTC(2026, 10, 12), d = 864e5;
   assert.notEqual(lateDay.priceAge(now - 7 * d, now), "paused", "a pause a day late wasn't caught");
   assert.notEqual(noWarn.priceAge(now - 3 * d, now), "old", "a missing warning wasn't caught");
+});
+
+// ---- 1.2.0: making a forecast easier to read ----
+// A score like the Track record's: n calls, leans, right, leanWeeks, rose
+const sc = (leans, right, rose, leanWeeks = 13) => ({ n: leans + 10, leans, right, rose, leanWeeks, weeks: leanWeeks });
+const fcOf = (lean, confidence, odds = lean === "up" ? 60 : lean === "down" ? 40 : 50) => ({ ok: true, lean, confidence, odds });
+
+test("In short: every case gets its own plain words", () => {
+  const better = sc(40, 32, 20), easy = sc(40, 32, 34), worse = sc(40, 8, 20), even = sc(40, 21, 20), luck = sc(40, 25, 20), few = sc(5, 4, 2, 3);
+  const cases = [
+    [fcOf("flip", "none"), null, null, "flip", "No lean either way. For the next 7 days, it's a coin flip."],
+    [fcOf("up", "low"), null, null, "none", "Leaning up a little, but the track record isn't ready yet to check it against. Treat it as a hint."],
+    [fcOf("up", "low"), few, null, "few", "Leaning up a little, but there are too few past leans yet to check it against. Treat it as a hint."],
+    [fcOf("down", "medium"), better, null, "better", "Leaning down with medium confidence, and its past leans did better than a coin flip. It's still a guess, not a sure thing."],
+    [fcOf("up", "low"), better, null, "better", "Leaning up a little, and its past leans did better than a coin flip. Still, treat it as a hint."],
+    [fcOf("up", "high"), easy, null, "easy", "Leaning up with high confidence, but its past leans did no better than just guessing up every time. Treat it as a hint."],
+    [fcOf("up", "low"), worse, null, "worse", "Leaning up a little, but its past leans did worse than a coin flip. Don't count on it."],
+    [fcOf("up", "low"), even, null, "even", "Leaning up a little, but its past leans were right 53% of the time, about what a coin flip gets. Treat it as a hint."],
+    [fcOf("down", "medium"), luck, null, "luck", "Leaning down with medium confidence, but its past leans were right 63% of the time, which could still be luck. Treat it as a hint."],
+    // too few of its own: all coins together stand in
+    [fcOf("up", "medium"), few, even, "even", "Leaning up with medium confidence, but past leans across all coins were right 53% of the time, about what a coin flip gets. Treat it as a hint."],
+  ];
+  for (const [fc, own, all, key, text] of cases) assert.deepEqual(E.inShort(fc, own, all), { key, text });
+  // the easy guess going "down" says so, and a tie with the leans still counts as not beating it
+  assert.match(E.inShort(fcOf("down", "medium"), sc(40, 32, 8), null).text, /no better than just guessing down every time/);
+  assert.equal(E.inShort(fcOf("up", "medium"), sc(40, 32, 32), null).key, "easy");
+  // a score from before 1.1.0 (no rose) can't show the easy guess, so it reads as better than a coin flip
+  assert.equal(E.inShort(fcOf("up", "medium"), Object.assign(sc(40, 32, 0), { rose: undefined }), null).key, "better");
+  // no forecast, no sentence
+  assert.equal(E.inShort({ ok: false, reason: "flat" }, better, better), null);
+  assert.equal(E.inShort(null, null, null), null);
+});
+
+test("In short is honest: with no real pattern it rarely says better than a coin flip, and otherwise says to go easy", () => {
+  const keys = {};
+  for (const seed of [41, 42, 43]) {
+    const coins = world({ seed });
+    for (const cut of [300, 364]) {
+      const past = coins.map((c) => ({ id: c.id, daily: { start: START, closes: c.daily.closes.slice(0, cut) } }));
+      const rec = E.trackRecord(past), by = new Map(rec.coins.map((s) => [s.id, s]));
+      const prep = E.prepare(E.buildLibrary(past), dayOf(cut));
+      for (const c of coins) {
+        const fc = E.forecastCoin(prep, { closes: c.daily.closes.slice(0, cut) }, c.daily.closes[cut]);
+        if (!fc.ok) continue;
+        fc.confidence = E.capConfidence(fc.confidence, by.get(c.id), rec.all).confidence;
+        const s = E.inShort(fc, by.get(c.id), rec.all);
+        keys[s.key] = (keys[s.key] || 0) + 1;
+        assert.doesNotMatch(s.text, /\b(buy|sell|guarantee[ds]?|sure bet)\b/i);
+        if (s.key !== "flip" && s.key !== "better") assert.match(s.text, /Treat it as a hint\.$|Don't count on it\.$/, s.text);
+      }
+    }
+  }
+  const leans = Object.entries(keys).filter(([k]) => k !== "flip").reduce((a, [, v]) => a + v, 0);
+  assert.ok(leans >= 20, "too few leans to judge: " + JSON.stringify(keys));
+  assert.ok((keys.better || 0) / leans <= 0.1, "with no pattern it said 'better than a coin flip' too often: " + JSON.stringify(keys));
+});
+
+test("planted bugs in In short get caught", () => {
+  const easy = sc(40, 32, 34), worse = sc(40, 8, 20), luck = sc(40, 25, 20), few = sc(5, 4, 2, 3), even = sc(40, 21, 20);
+  // 1. the easy guess no longer checked
+  assert.equal(planted("if (easy && easy.right >= s.right) return", "if (false) return").inShort(fcOf("up", "medium"), easy, null).key, "better", "a missing easy-guess check wasn't caught");
+  // 2. worse than a coin flip no longer said
+  assert.notEqual(planted('if (verdict === "worse")', 'if (verdict === "never")').inShort(fcOf("up", "low"), worse, null).key, "worse", "a missing 'worse' wasn't caught");
+  // 3. "about what a coin flip gets" stretched too far
+  assert.equal(planted("Math.abs(hit - 50) <= 5", "Math.abs(hit - 50) <= 50").inShort(fcOf("up", "low"), luck, null).key, "even", "a stretched coin-flip band wasn't caught");
+  // 4. the coin's own few leans used instead of all coins together
+  assert.doesNotMatch(planted('const s = by === "coin" ? coinScore : allScore;\n    const whose', 'const s = coinScore;\n    const whose').inShort(fcOf("up", "medium"), few, even).text, /53%/, "using too few leans wasn't caught");
+  assert.match(E.inShort(fcOf("up", "medium"), few, even).text, /53%/);
+});
+
+test("last week's call matches the track record's latest call for that coin, and is scored the same way", () => {
+  const coins = world({ seed: 8, coins: 12 });
+  const lib = E.buildLibrary(coins);
+  const calls = E.replayCalls(coins, 3);
+  const lastDay = Math.max(...calls.map((c) => c.day));
+  assert.equal(lastDay, dayOf(365 - 1 - E.AHEAD));
+  for (const c of coins) {
+    const mine = E.lastCall(lib, c), theirs = calls.find((x) => x.coin === c.id && x.day === lastDay);
+    assert.ok(mine && theirs, c.id + ": no call");
+    for (const k of ["day", "lean", "odds", "confidence", "price", "low", "best", "high", "later"]) assert.equal(mine[k], theirs[k], c.id + ": " + k);
+    assert.equal(mine.from, E.dayIso(lastDay));
+    assert.equal(mine.to, E.dayIso(lastDay + E.AHEAD));
+    assert.equal(mine.later, c.daily.closes[364]);
+    // scored a second way, by hand
+    const rose = mine.later > mine.price;
+    assert.equal(mine.right, mine.lean === "flip" ? null : mine.lean === "up" ? rose : !rose);
+    assert.equal(mine.inRange, mine.later >= mine.low && mine.later <= mine.high);
+    assert.ok(Math.abs(mine.move - (mine.later / mine.price - 1)) < 1e-12);
+    allFinite({ price: mine.price, low: mine.low, high: mine.high, move: mine.move });
+  }
+});
+
+test("last week's call never sees past its own day, except the last price it's scored on", () => {
+  const coins = world({ seed: 9, coins: 10 });
+  const lib = E.buildLibrary(coins);
+  const before = coins.map((c) => E.lastCall(lib, c));
+  // shake every price after the call's day except the very last one, for every coin
+  const shaken = coins.map((c) => {
+    const px = c.daily.closes.slice(), i = px.length - 1 - E.AHEAD;
+    for (let k = i + 1; k < px.length - 1; k++) px[k] *= k % 2 ? 1.3 : 0.7;
+    return { id: c.id, daily: { start: c.daily.start, closes: px } };
+  });
+  const shakenLib = E.buildLibrary(shaken);
+  const after = shaken.map((c) => E.lastCall(shakenLib, c));
+  for (let k = 0; k < coins.length; k++) for (const f of ["lean", "odds", "low", "high", "later", "right"]) assert.equal(after[k][f], before[k][f], coins[k].id + ": " + f);
+  // a call that peeks: its library sees 7 more days
+  const peek = planted("const prep = prepare(lib, start + i);", "const prep = prepare(lib, start + i + 7);");
+  const moved = shaken.some((c, k) => { const a = peek.lastCall(shakenLib, c), b = peek.lastCall(lib, coins[k]); return a.odds !== b.odds || a.low !== b.low; });
+  assert.ok(moved, "a last week's call that peeks wasn't caught");
+});
+
+test("last week's call says nothing, without crashing, when there's no call to check", () => {
+  const lib = E.buildLibrary(world({ seed: 10, coins: 8 }));
+  const short = { id: "s", daily: { start: START, closes: Array.from({ length: E.MIN_DAYS + E.AHEAD }, (_, i) => 100 + Math.sin(i)) } };
+  assert.equal(E.lastCall(lib, short), null);
+  // just long enough, ending on the same day as the made-up market (so the look-alike library is full by then)
+  assert.ok(E.lastCall(lib, { id: "ok", daily: { start: E.dayIso(dayOf(365 - E.MIN_DAYS - E.AHEAD - 1)), closes: Array.from({ length: E.MIN_DAYS + E.AHEAD + 1 }, (_, i) => 100 * Math.exp(0.02 * Math.sin(i * 1.7))) } }));
+  for (const bad of [null, {}, { id: "x" }, { id: "x", daily: { start: "bad", closes: [1, 2, 3] } }, { id: "x", daily: { start: START, closes: "no" } }]) assert.equal(E.lastCall(lib, bad), null);
+  assert.equal(E.lastCall([], world({ seed: 10, coins: 1 })[0]), null);
+});
+
+test("big swing note: much more than usual, and only about 1 day in 20 on made-up markets", () => {
+  const r = rng(77);
+  const walk = (n, sd, from = 100) => { const px = [from]; for (let i = 1; i < n; i++) px.push(px[i - 1] * Math.exp(sd * gauss(r))); return px; };
+  const calm = walk(120, 0.01);
+  const wild = calm.slice(0, 100).concat(walk(21, 0.03, calm[99]).slice(1));
+  assert.equal(E.bigSwing(E.setupAt(calm, 119).raw), false);
+  assert.equal(E.bigSwing(E.setupAt(wild, 119).raw), true);
+  assert.equal(E.bigSwing(null), false);
+  assert.equal(E.bigSwing({ swing: E.BIG_SWING }), true);
+  assert.equal(E.bigSwing({ swing: E.BIG_SWING - 0.001 }), false);
+  let n = 0, big = 0;
+  for (const seed of [1, 2, 3]) for (const c of world({ seed })) for (let i = 60; i < 365; i++) {
+    const s = E.setupAt(c.daily.closes, i);
+    if (s) { n++; if (E.bigSwing(s.raw)) big++; }
+  }
+  assert.ok(big / n > 0.02 && big / n < 0.08, "big swings on " + (100 * big / n).toFixed(1) + "% of days");
+  // planted: the bar dropped to plain "more than usual"
+  const low = planted("return !!setup && setup.swing >= BIG_SWING;", "return !!setup && setup.swing >= 1.25;");
+  let lowBig = 0;
+  for (const c of world({ seed: 1 })) for (let i = 60; i < 365; i++) { const s = E.setupAt(c.daily.closes, i); if (s && low.bigSwing(s.raw)) lowBig++; }
+  assert.ok(lowBig / (n / 3) > 0.08, "a lower bar wasn't caught");
+});
+
+test("past year facts match a count by hand", () => {
+  const px = [100, 101, 102, 103, 104, 105, 106, 107, 90, 95, 120, 80];
+  // 7-day stretches: 107/100, 90/101, 95/102, 120/103, 80/104
+  const f = E.pastYear(px);
+  assert.equal(f.days, 12);
+  assert.equal(f.stretches, 5);
+  assert.equal(f.fell, 3);
+  assert.ok(Math.abs(f.drop - (1 - 80 / 104)) < 1e-12);
+  assert.ok(Math.abs(f.fellShare - 3 / 5) < 1e-12);
+  // a whole made-up year, a second way
+  for (const c of world({ seed: 12, coins: 4, days: 400 })) {
+    const all = c.daily.closes, year = all.slice(-365);
+    let worst = 0, fell = 0;
+    for (let i = 7; i < year.length; i++) { worst = Math.min(worst, year[i] / year[i - 7] - 1); if (year[i] < year[i - 7]) fell++; }
+    const g = E.pastYear(all);
+    assert.equal(g.days, 365);
+    assert.equal(g.stretches, 358);
+    assert.equal(g.fell, fell);
+    assert.ok(Math.abs(g.drop + worst) < 1e-12);
+  }
+  // never fell: no drop at all
+  assert.equal(E.pastYear([1, 2, 3, 4, 5, 6, 7, 8, 9]).drop, 0);
+  assert.equal(E.pastYear([1, 2, 3, 4, 5, 6, 7]), null);
+  assert.equal(E.pastYear(null), null);
+  // planted: the whole history used instead of the past year
+  const longer = world({ seed: 12, coins: 1, days: 400 })[0].daily.closes;
+  assert.notEqual(planted("const px = closes.slice(-YEAR_DAYS);", "const px = closes.slice();").pastYear(longer).stretches, 358, "using more than a year wasn't caught");
 });

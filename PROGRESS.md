@@ -81,6 +81,15 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
   - **Shown only:** it doesn't change verdicts, the confidence cap or Worth a look. "Also stricter picks" was offered and not picked; it would need its own tuning tests.
   - **Counted on the lean calls, not all calls,** so it compares like with like: `rose` in each score is how many lean calls ended higher (a down lean is right when the price didn't end higher, so saying "down" every time is right `leans - rose` times).
   - **`rose` is optional in prices.json:** older app copies ignore it (they build scores from known fields only), and this version shows no easy-guess line for a file without it. When it's there, it must be a whole number no bigger than the leans, or that score isn't used, like any other count that doesn't add up. The record stays `v: 1`.
+- **Easier to read (1.2.0), and why:**
+  - **The guiding idea** (the owner's): what Best Guess says is how much to trust today's guess, never what to do with a coin. No buy or sell wording, alerts or price targets, and the summaries must be able to say plainly when leans aren't beating simple guessing.
+  - **"In short" comes from the engine** (`inShort()`), like `standouts()`: the lean, the confidence after the cap, and the record (the coin's own leans when there are enough, otherwise all coins, the same choice as the cap). "Simple guessing" is a coin flip and the easy guess. Better than a coin flip is judged by `judge()` (separate weeks); the easy guess has no luck test of its own, so a tie or worse with it is said plainly ("no better than just guessing up every time"), but being a little ahead of it is never claimed as beating it. "About what a coin flip gets" means within 5 points of 50%; further off but not proven says "which could still be luck." Every case but "better" ends "Treat it as a hint." or "Don't count on it." Its honesty test: with no real pattern, "better" on at most 1 lean in 10 (measured about 1 in 20).
+  - **The made-up $100 uses the same numbers as the likely range** (the fan's 10% and 90% lines), so "about 1 time in 10, less than $X" can't disagree with the range. Whole dollars, or cents when the range is under $10 wide.
+  - **Last week's call is the Track record's latest call for that coin:** made 7 days before the coin's last daily price (00:00 UTC) and scored on that daily price, not today's live price. `replayCalls()` and `lastCall()` share `callAt()`, and a test checks they agree. Confidence isn't shown, since it's the look-alikes' own before the cap (the same reason as "Leans by confidence"). It's part of the forecast, so it pauses with it.
+  - **The big swing note at 1.35** (the setup's swings now vs usual): about 1 day in 20 on made-up markets, and it means the last 20 days swung about twice as much as the 30 before. Why still says "more than usual" from 1.25. The number can't go much above 1.56, because the 50 days include the 20.
+  - **Before you decide is a fold-out** (the owner's pick) near the bottom of every forecast, closed each time a forecast opens and kept open through a live-price redraw. The 3 questions are the owner's. No checkboxes, since nothing would be saved.
+  - **Two facts with "Not financial advice"** (the owner's pick of both): the coin's biggest 7-day drop and how often it was lower a week later, from its last 365 daily prices (`pastYear()`). A shorter history says "In its last N days of prices." This replaced the long sentence repeated at the bottom of every forecast; "Never put in money you can't afford to lose" now lives in the checklist's first question.
+  - **Offered and not picked:** a one-line summary on Today, a first-open tour, and a reading-level pass on all wording.
 - **Fonts:** the same built-in fonts as Till Payday (Atkinson Hyperlegible, Bricolage Grotesque, DM Mono; SIL Open Font License). Own colors (indigo), contrast computed in code.
 
 ## Known limits
@@ -97,19 +106,14 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 
 ## Where things stand (Nov 12, 2026)
 
-- **Live version:** 1.1.0, at https://bestguess-apps.github.io/best-guess/ (the old-prices warning and pause, the easy guess in the Track record, and the keepalive job). 1.0.0 was the first full release with all five stages.
-- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details), and on GitHub: Publish passed, the v1.1.0 tag is there, the published prices have the new count, and the keepalive job passed when Publish was started on demand (the workflow showed as on). On a real iPhone (iOS 18.7, from the Home Screen), the self-test passed all 384 checks on the live site, with real prices and live prices working. The keepalive job hasn't been seen on its daily 00:17 UTC run yet.
-- **Earlier:** 1.0.0 passed all 351 self-test checks on a real iPhone (Nov 10, 2026), in Safari and from the Home Screen, with real prices and live prices working, and the owner reported VoiceOver works.
+- **Live version:** 1.2.0 once its Publish run passes, at https://bestguess-apps.github.io/best-guess/ (In short, the made-up $100, last week's call, the big swing note, Before you decide, and two facts next to Not financial advice on every forecast). 1.1.0 added the old-prices warning, the easy guess and the keepalive job; 1.0.0 was the first full release.
+- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details): 41 engine and publish-step tests, 21 fetcher tests, the self-test in 7 time zones at 3 sizes (536 checks, 608 with daylight saving), and the accessibility checker on every screen and sheet. Not yet on a real iPhone.
+- **Earlier:** 1.1.0 passed all 384 self-test checks on a real iPhone (iOS 18.7, from the Home Screen) with real and live prices. 1.0.0 passed 351, in Safari and from the Home Screen, and the owner reported VoiceOver works.
 
 ## Next up
 
-- Both Done when lines for 1.1.0 passed on the owner's iPhone (the old-prices warning, through the self-test, and the easy guess line, seen in the Track record). The self-test keeps checking both.
-- **1.2.0, planned (the owner's picks, Nov 12, 2026), all in one release:** make forecasts easier to understand. The guiding idea: the direction Best Guess gives is how much to trust today's guess, never what to do with a coin. No buy or sell wording, alerts or price targets (ground rules). Summaries must be allowed to say plainly when the leans aren't beating simple guessing.
-  - **"In short" line** at the top of each forecast: one plain sentence rolling up the lean, confidence and track record (for example, "Leaning up a little, but calls like this have been right about half the time. Treat it as a hint."). The engine picks the wording, with tests, like `standouts()`.
-  - **Risk in dollars:** the likely range for a made-up $100, downside first ("in a week it'd likely be worth $88 to $109; about 1 time in 10, less than $88"). Same numbers as the range, from the fan's 10% line.
-  - **Last week's call, checked:** what Best Guess said for that coin 7 days ago and whether it turned out right, worked out the way `replayCalls()` does (no peeking).
-  - **Big swing note:** a plain line when a coin is moving much more than usual (the setup's "swings now vs usual").
-  - **Before you decide:** a short checklist about the person, not the coin (can you afford to lose it, will you need it soon, would a 30% drop next week be okay), linked from every forecast. Plus a shorter "Not financial advice" line on every forecast, paired with one real fact, instead of the same sentence repeated.
-  - Offered and not picked: a one-line summary on Today, a first-open tour, and a reading-level pass on all wording.
-  - Done when lines get drafted and okayed in the build chat.
+- **The owner's iPhone check for 1.2.0** (Done when lines, okayed in the build chat):
+  1. Open any coin's forecast and read, at the top, one plain sentence on how much to trust today's lean, which says so plainly when past leans haven't beaten simple guessing.
+  2. In that forecast, see what a made-up $100 would likely be worth in a week (downside first), whether last week's call for that coin came out right, and open a short Before you decide checklist.
+  Plus About → Run self-test on the live site (536 checks where there's no daylight saving).
 - **Check the keepalive job on its daily run:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.
