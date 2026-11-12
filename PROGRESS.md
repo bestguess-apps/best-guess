@@ -112,7 +112,5 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 
 ## Next up
 
-- **The owner's iPhone check for 1.2.0** (Done when lines, okayed in the build chat):
-  1. Open any coin's forecast and read, at the top, one plain sentence on how much to trust today's lean, which says so plainly when past leans haven't beaten simple guessing.
-  2. In that forecast, see what a made-up $100 would likely be worth in a week (downside first), whether last week's call for that coin came out right, and open a short Before you decide checklist.
+- Both Done when lines for 1.2.0 passed on the owner's iPhone (In short at the top; the $100 line, last week's call and Before you decide further down). The self-test keeps checking all of them.
 - **Check the keepalive job on its daily run:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.
