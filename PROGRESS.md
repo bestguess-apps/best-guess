@@ -107,7 +107,7 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 ## Where things stand (Nov 12, 2026)
 
 - **Live version:** 1.2.0, at https://bestguess-apps.github.io/best-guess/ (In short, the made-up $100, last week's call, the big swing note, Before you decide, and two facts next to Not financial advice on every forecast). 1.1.0 added the old-prices warning, the easy guess and the keepalive job; 1.0.0 was the first full release.
-- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details): 41 engine and publish-step tests, 21 fetcher tests, the self-test in 7 time zones at 3 sizes (536 checks, 608 with daylight saving), and the accessibility checker on every screen and sheet. On GitHub: Publish passed and the v1.2.0 tag is there. Not yet on a real iPhone.
+- **Tested:** in headless Chrome and Node (CHANGELOG.md has the details): 41 engine and publish-step tests, 21 fetcher tests, the self-test in 7 time zones at 3 sizes (536 checks, 608 with daylight saving), and the accessibility checker on every screen and sheet. On GitHub: Publish passed and the v1.2.0 tag is there. On a real iPhone (iOS 18.7, from the Home Screen), the self-test passed all 536 checks on the live site, with real and live prices working.
 - **Earlier:** 1.1.0 passed all 384 self-test checks on a real iPhone (iOS 18.7, from the Home Screen) with real and live prices. 1.0.0 passed 351, in Safari and from the Home Screen, and the owner reported VoiceOver works.
 
 ## Next up
@@ -115,5 +115,4 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 - **The owner's iPhone check for 1.2.0** (Done when lines, okayed in the build chat):
   1. Open any coin's forecast and read, at the top, one plain sentence on how much to trust today's lean, which says so plainly when past leans haven't beaten simple guessing.
   2. In that forecast, see what a made-up $100 would likely be worth in a week (downside first), whether last week's call for that coin came out right, and open a short Before you decide checklist.
-  Plus About → Run self-test on the live site (536 checks where there's no daylight saving).
 - **Check the keepalive job on its daily run:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.
