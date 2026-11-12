@@ -37,6 +37,9 @@ test("adds a record that matches the engine, and keeps everything else as it was
   assert.equal(out.record.all.n, 8 * 90);
   assert.equal(out.record.coins.length, 8);
   assert.ok(JSON.stringify(out.record).length < 20000, "the record stays small");
+  // the easy guess's count (1.1.0) travels with every score, as a whole number no bigger than the leans
+  for (const s of [out.record.all, ...out.record.coins]) assert.ok(Number.isInteger(s.rose) && s.rose >= 0 && s.rose <= s.leans, "rose for " + (s.id || "all"));
+  assert.equal(out.record.coins.reduce((a, c) => a + c.rose, 0), out.record.all.rose);
 });
 
 test("running it twice gives the same file, and an old record is replaced, not trusted", () => {

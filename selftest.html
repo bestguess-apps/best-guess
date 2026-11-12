@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-kDlb9/laOUULvIz2twOsLjzr8ecBOZD4rAwYv9fo8rI=' 'sha256-HueXCV24IGeIJfag5VuZbE4ZVNJQ7yt6QouJccMZ4xo=' 'sha256-mq5zVNz+JAXG1ntxyA0NGJs9LT0fj71uRTolccf//Io=' 'sha256-i2OVZ1v/08kwBwhotgPNCBGRcmcQBNCnrwIFrdlEdss='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-X2aQrEvqHVce1jkn/pFh1a3W2YvAu2uVbyAXGu4JAHA=' 'sha256-qWaRBV667u3a/T1uSuXgiSWx3cfkFPJ00rH3+/zQHJU=' 'sha256-E18PQBfutUbggLoA3cUU0xKsxpYW/1iJSFGWY9xiL6Q=' 'sha256-uCITDuNurSH+xkJBm6tJ5loxW3a/9CPTn9LiMJzHZVY='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'self' https://api.coingecko.com; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Free, private crypto odds with honest confidence levels and a track record. Not financial advice.">
 <meta name="theme-color" content="#F2F1F7" media="(prefers-color-scheme: light)">
@@ -331,7 +331,8 @@ body.sheet-open { overflow: hidden; }
   <p>For each coin, Best Guess sizes up today's setup: the price against its 20- and 50-day averages, how far it moved in the last 7 and 30 days, how much it's swinging, and where it sits in its 30-day range. Then it finds the 50 moments in the past year, across all the coins it follows, that looked most like that, and checks where each price was 7 days later.</p>
   <p>Odds stay close to 50-50 unless those look-alikes clearly agree. Under 55% either way, it says "coin flip", and most days that's the honest answer. Confidence (low, medium or high) depends on how strongly they agree and how many different weeks they came from. Coins tend to move together, so ten coins on the same day count as one example.</p>
   <p>Worth a look goes through every coin Best Guess follows and names up to 3 whose leans stand out: medium or high confidence, and past leans that were right at least 55% of the time (that coin's own when there are enough to tell, otherwise all coins together). When none do, it says "Nothing stands out today." Coins tend to move together, so two or three names on the same day are closer to one call than three.</p>
-  <p>The Track record tab shows how its calls really did over the last 90 days, good or bad. That record also holds confidence down: a coin whose leans were right less than half the time stays at low confidence, and none can say high unless its leans were right at least 55% of the time.</p>
+  <p>The Track record tab shows how its calls really did over the last 90 days, good or bad. That record also holds confidence down: a coin whose leans were right less than half the time stays at low confidence, and none can say high unless its leans were right at least 55% of the time. Next to how often the leans were right, it also shows the easy guess: how often just saying "up" (or "down") every time would have been right on the same days. When prices mostly move one way, beating a coin flip is easy, so that's a second bar to compare with.</p>
+  <p>Forecasts need recent prices. If the saved prices are 2 days old, the top of the app says so, and at a week old, forecasts and Worth a look pause until prices update.</p>
 
   <h3>Your privacy</h3>
   <ul>
@@ -456,35 +457,37 @@ body.sheet-open { overflow: hidden; }
 
   // ---- made-up track records (counts that add up, like add_record.mjs makes) ----
   const conf = (l, m, h) => ({ low: l, medium: m, high: h });
-  function score(n, flips, right, weeks, leanWeeks, c, inRange, missBest, missFlat) {
-    return { n, flips, leans: n - flips, right, weeks, leanWeeks, inRange, missBest, missFlat, conf: c };
+  // rose: lean calls whose price ended higher (the easy guess, 1.1.0)
+  function score(n, flips, right, weeks, leanWeeks, c, inRange, missBest, missFlat, rose) {
+    return { n, flips, leans: n - flips, right, rose, weeks, leanWeeks, inRange, missBest, missFlat, conf: c };
   }
   // Good: leans across all coins right 60% of the time. Some coins have enough of their own leans to judge.
   function goodRecord(coins) {
     const to = coins[0].daily.closes.length - 1 - 7, from = to - 89;
     const day = (i) => new Date((Date.parse(coins[0].daily.start + "T00:00:00Z") / DAY + i) * DAY).toISOString().slice(0, 10);
     const per = {
-      0: score(90, 45, 40, 13, 13, conf([20, 16], [15, 14], [10, 10]), 76, 0.051, 0.058),   // much better than a coin flip
-      1: score(90, 84, 4, 13, 3, conf([4, 3], [2, 1], [0, 0]), 73, 0.06, 0.061),            // too few leans to tell
-      2: score(90, 60, 3, 13, 13, conf([18, 2], [9, 1], [3, 0]), 70, 0.071, 0.064),         // worse than a coin flip: 3 of 30
-      3: score(90, 90, 0, 13, 0, conf([0, 0], [0, 0], [0, 0]), 72, 0.049, 0.05),            // all coin flips
+      0: score(90, 45, 40, 13, 13, conf([20, 16], [15, 14], [10, 10]), 76, 0.051, 0.058, 30), // much better than a coin flip; saying "up" every time: 30 of 45
+      1: score(90, 84, 4, 13, 3, conf([4, 3], [2, 1], [0, 0]), 73, 0.06, 0.061, 4),           // too few leans to tell
+      2: score(90, 60, 3, 13, 13, conf([18, 2], [9, 1], [3, 0]), 70, 0.071, 0.064, 9),        // worse than a coin flip: 3 of 30; "down": 21 of 30
+      3: score(90, 90, 0, 13, 0, conf([0, 0], [0, 0], [0, 0]), 72, 0.049, 0.05, 0),           // all coin flips
     };
     return {
       v: 1, days: 90, from: day(from), to: day(to),
-      all: score(2250, 1500, 450, 13, 13, conf([400, 230], [250, 150], [100, 70]), 1800, 0.061, 0.064),
-      coins: coins.map((c, k) => Object.assign({ id: c.id }, per[k] || score(90, 60, 18, 13, 9, conf([20, 11], [8, 5], [2, 2]), 72, 0.06, 0.062))),
+      all: score(2250, 1500, 450, 13, 13, conf([400, 230], [250, 150], [100, 70]), 1800, 0.061, 0.064, 480),
+      // the rest: a tie (15 of 30 rose), so the easy guess says "up" and is right half the time
+      coins: coins.map((c, k) => Object.assign({ id: c.id }, per[k] || score(90, 60, 18, 13, 9, conf([20, 11], [8, 5], [2, 2]), 72, 0.06, 0.062, 15))),
     };
   }
   // Poor: leans across all coins right only 40% of the time, so no confidence above low
   function poorRecord(coins) {
     const r = goodRecord(coins);
-    r.all = score(2250, 1500, 300, 13, 13, conf([400, 160], [250, 100], [100, 40]), 1800, 0.061, 0.064);
+    r.all = score(2250, 1500, 300, 13, 13, conf([400, 160], [250, 100], [100, 40]), 1800, 0.061, 0.064, 300);
     r.coins = [];
     return r;
   }
 
   // ---- what each scene answers ----
-  // prices: good | none (404) | norecord | poor | hostile | damaged      live: ok | busy | junk
+  // prices: good | none (404) | norecord | poor | oldrecord | hostile | damaged      live: ok | busy | junk
   let base = null;
   function file(kind, minutesAgo) {
     if (!base) base = market();
@@ -492,6 +495,12 @@ body.sheet-open { overflow: hidden; }
     const out = { app: "best-guess", v: 1, fetched: new Date(Date.now() - minutesAgo * 6e4).toISOString(), source: "made up for the self-test", coins };
     if (kind === "good") out.record = goodRecord(coins);
     if (kind === "poor") out.record = poorRecord(coins);
+    if (kind === "oldrecord") {
+      // A record from before 1.1.0 has no rose: it's used, without the easy guess. One coin's rose doesn't add up: that coin isn't.
+      out.record = goodRecord(coins);
+      for (const sc of [out.record.all, ...out.record.coins]) delete sc.rose;
+      out.record.coins[4].rose = out.record.coins[4].leans + 1;
+    }
     if (kind === "hostile") {
       // Untrusted data must show as plain text, with invisible and direction-changing characters taken out
       coins[5].name = "<img src=x onerror=__bgPwned=1>Odd\u202e\u200b Test";
@@ -566,6 +575,8 @@ const BestGuessEngine = (() => {
   const CAP_MEDIUM = 0.55;  // less often than this (the odds a lean needs): Medium at most
   const PICKS = 3;          // Worth a look names this many coins at most
   const PICK_RIGHT = 0.55;  // ...and only ones whose past leans were right at least this often (the odds a lean needs)
+  const OLD_DAYS = 2;       // saved prices this old get a warning (they normally update every 6 hours)...
+  const PAUSE_DAYS = 7;     // ...and this old, forecasts pause until prices update
 
   function dayNum(iso) { return Math.floor(Date.parse(iso + "T00:00:00Z") / DAY_MS); }
   function dayIso(n) { return new Date(n * DAY_MS).toISOString().slice(0, 10); }
@@ -807,9 +818,10 @@ const BestGuessEngine = (() => {
 
   // Counts for a set of calls. A lean is right when the price ended on the side it leaned to.
   // conf holds [leans, right] for each confidence level. The misses are average distances from the
-  // real price, as a share of the price on the day of the call.
+  // real price, as a share of the price on the day of the call. rose counts the lean calls whose price
+  // ended higher, for the easy guess (easyGuess below).
   function scoreCalls(calls) {
-    const s = { n: 0, flips: 0, leans: 0, right: 0, weeks: 0, leanWeeks: 0, inRange: 0, conf: { low: [0, 0], medium: [0, 0], high: [0, 0] }, missBest: null, missFlat: null };
+    const s = { n: 0, flips: 0, leans: 0, right: 0, rose: 0, weeks: 0, leanWeeks: 0, inRange: 0, conf: { low: [0, 0], medium: [0, 0], high: [0, 0] }, missBest: null, missFlat: null };
     const days = [], leanDays = [];
     let mb = 0, mf = 0;
     for (const c of calls) {
@@ -823,6 +835,7 @@ const BestGuessEngine = (() => {
       s.leans++;
       leanDays.push(c.day);
       if (ok) s.right++;
+      if (c.later > c.price) s.rose++;
       const level = s.conf[c.confidence];
       if (level) { level[0]++; if (ok) level[1]++; }
     }
@@ -876,6 +889,27 @@ const BestGuessEngine = (() => {
     return out;
   }
 
+  // The easy guess: saying the same thing every time, on the same days the leans were made. When prices
+  // mostly went one way, beating a coin flip is easy, so the leans are shown next to this bar too.
+  // It takes whichever way happened more ("up" on a tie), the stronger of the two plain guesses.
+  // It's only shown, never used for confidence, verdicts or picks. null with no leans, or when the
+  // counts don't have rose (a prices file from before 1.1.0).
+  function easyGuess(s) {
+    if (!s || !(s.leans > 0) || !Number.isInteger(s.rose) || s.rose < 0 || s.rose > s.leans) return null;
+    const up = s.rose >= s.leans - s.rose;
+    return { word: up ? "up" : "down", right: up ? s.rose : s.leans - s.rose, of: s.leans };
+  }
+
+  // How old the saved prices are: fresh, old (a warning) or paused (no forecasts). A forecast uses the
+  // saved daily prices plus today's price, so once those are a week out of date it would treat a week's
+  // move as one day's. A date in the future (a phone clock that's off) or no date counts as fresh.
+  function priceAge(fetchedMs, nowMs) {
+    if (typeof fetchedMs !== "number" || typeof nowMs !== "number") return "fresh";
+    const age = nowMs - fetchedMs;
+    if (!Number.isFinite(age) || age < OLD_DAYS * DAY_MS) return "fresh";
+    return age >= PAUSE_DAYS * DAY_MS ? "paused" : "old";
+  }
+
   // The track record holds confidence down: a coin whose past leans were poor can't say High.
   // It goes by the coin's own leans when there are enough to tell, otherwise by all coins together.
   // It can only lower confidence, never raise it, and never changes the lean or the odds.
@@ -923,7 +957,8 @@ const BestGuessEngine = (() => {
     PICKS, PICK_RIGHT, standouts,
     AHEAD, LOOKALIKES, MIN_DAYS, LEVEL_DAYS, RECORD_DAYS, MIN_LEANS, MIN_CALLS, MIN_WEEKS,
     dayNum, dayIso, separateWeeks, setupAt, buildLibrary, prepare, forecast, forecastCoin, keyLevels, fanAt,
-    replayCalls, scoreCalls, trackRecord, judge, capConfidence,
+    replayCalls, scoreCalls, trackRecord, judge, capConfidence, easyGuess,
+    OLD_DAYS, PAUSE_DAYS, priceAge,
   };
 })();
 </script>
@@ -931,7 +966,7 @@ const BestGuessEngine = (() => {
 (() => {
   "use strict";
   // ---- settings ----
-  const APP_VERSION = "1.0.0";
+  const APP_VERSION = "1.1.0";
   const LOCAL_KEY = "best-guess-selftest-v1";
   const PRICES_URL = "prices.json";
   const LIVE_URL = "https://api.coingecko.com/api/v3/simple/price";
@@ -1065,7 +1100,13 @@ const BestGuessEngine = (() => {
       right += pair[1];
     }
     const addsUp = s.n >= 1 && s.flips + s.leans === s.n && s.right <= s.leans && s.inRange <= s.n && leans === s.leans && right === s.right && s.weeks >= 1 && s.weeks <= s.n && s.leanWeeks <= s.weeks && s.leanWeeks <= s.leans;
-    return addsUp ? s : null;
+    if (!addsUp) return null;
+    // rose (lean calls whose price ended higher) came in 1.1.0. A file without it is older: the easy guess
+    // just isn't shown. One that has it must add up like the rest.
+    if (r.rose === undefined) s.rose = null;
+    else if (count(r.rose) !== null && r.rose <= s.leans) s.rose = r.rose;
+    else return null;
+    return s;
   }
   function readRecord(r, coins) {
     if (!r || typeof r !== "object" || r.v !== 1) return null;
@@ -1221,6 +1262,8 @@ const BestGuessEngine = (() => {
   function forecastFor(c) {
     const price = shown(c).price;
     try {
+      // Saved prices a week old would make forecasts treat a week's move as one day's (the engine's priceAge)
+      if (E.priceAge(saved.fetched, Date.now()) === "paused") return { ok: false, reason: "old-prices" };
       const key = saved.fetched + ":" + saved.coins.length;
       if (preparedFor !== key) {
         prepared = E.prepare(E.buildLibrary(saved.coins), E.dayNum(new Date().toISOString().slice(0, 10)));
@@ -1257,9 +1300,10 @@ const BestGuessEngine = (() => {
     "few-examples": "Not enough past prices are loaded to compare with yet. Try again later.",
     "no-price": "Its price didn't load, so there's no forecast for it yet.",
     "error": "Something went wrong working out this forecast. Try Refresh, or check again later.",
+    "old-prices": "Best Guess's saved prices are more than a week old. A forecast now would treat a week's move as one day's, so forecasts are paused until prices update.",
   };
   function leanLine(fc) {
-    if (!fc.ok) return { cls: "none", text: "7-day lean: no forecast yet" };
+    if (!fc.ok) return { cls: "none", text: fc.reason === "old-prices" ? "7-day lean: paused, prices are old" : "7-day lean: no forecast yet" };
     if (fc.lean === "flip") return { cls: "flip", text: "7-day lean: coin flip" };
     return { cls: fc.lean, text: "7-day lean: " + fc.lean + ", " + (fc.lean === "up" ? fc.odds : 100 - fc.odds) + "% · " + CONF_WORD[fc.confidence] };
   }
@@ -1337,6 +1381,17 @@ const BestGuessEngine = (() => {
     }
     const l = state.live;
     const liveFresh = !offline && l && Date.now() - l.at < LIVE_FRESH_MS && l.at > saved.fetched;
+    // Old saved prices get said first, even when live prices work: forecasts are built on them
+    const age = E.priceAge(saved.fetched, Date.now());
+    if (age !== "fresh") {
+      box.classList.add("warn");
+      add(p, el("b", "Saved prices are from " + ago(saved.fetched) + "."),
+        document.createTextNode(age === "paused" ? " Forecasts are paused until they update." : " Forecasts may be off until they update."));
+      const more = live.status === "checking" ? "Checking live prices…" : liveFresh ? "Live prices checked " + ago(l.at) + "."
+        : offline ? "You're offline." : live.status === "failed" ? "Live prices didn't load." : "";
+      if (more) add(p, document.createTextNode(" " + more));
+      return;
+    }
     if (live.status === "checking") add(p, el("b", "Checking live prices…"));
     else if (liveFresh) add(p, el("b", "Live prices"), document.createTextNode(", checked " + ago(l.at) + "."));
     else {
@@ -1400,6 +1455,11 @@ const BestGuessEngine = (() => {
       add(body, card);
       return;
     }
+    if (E.priceAge(saved.fetched, Date.now()) === "paused") {
+      add(body, add(el("div", null, { class: "card" }), el("p", "Worth a look is paused.", { class: "nothing" }),
+        el("p", "Best Guess's saved prices are more than a week old, so there are no forecasts to go through. Picks come back when prices update.")));
+      return;
+    }
     const rec = saved.record;
     let look;
     try {
@@ -1454,7 +1514,7 @@ const BestGuessEngine = (() => {
     add(body, box, followRow(c));
     if (held) { const back = $(held); if (back) back.focus({ preventScroll: true }); }
     if (!fc.ok) {
-      add(box, el("p", "No forecast yet", { class: "leanbig" }), el("p", NO_FORECAST[fc.reason] || NO_FORECAST.error));
+      add(box, el("p", fc.reason === "old-prices" ? "Forecast paused" : "No forecast yet", { class: "leanbig" }), el("p", NO_FORECAST[fc.reason] || NO_FORECAST.error));
       return;
     }
     const date = weekOut();
@@ -1573,7 +1633,11 @@ const BestGuessEngine = (() => {
     const j = E.judge(s), dl = el("dl", null, { class: "stats" });
     if (!s.leans) add(dl, stat("Leans that were right", "No leans", "", "It said coin flip every time, so there's nothing to score."));
     else if (j.leans === "few") add(dl, stat("Leans that were right", outOf(s.right, s.leans), "", tooFew()));
-    else add(dl, stat("Leans that were right", share(s.right, s.leans), "(" + outOf(s.right, s.leans) + ")", "A coin flip gets 50%. " + leanVerdict(s, j)));
+    else {
+      const easy = E.easyGuess(s);
+      add(dl, stat("Leans that were right", share(s.right, s.leans), "(" + outOf(s.right, s.leans) + ")", "A coin flip gets 50%. " + leanVerdict(s, j),
+        easy ? "Just saying “" + easy.word + "” every time on these same days was right " + share(easy.right, easy.of) + " (" + outOf(easy.right, easy.of) + "). In a market that mostly moves one way, that's the easy bar to beat." : ""));
+    }
     add(dl, stat("Said coin flip instead of leaning", share(s.flips, s.n), "(" + outOf(s.flips, s.n) + " calls)", "It only leans when look-alikes clearly agree."));
     const levels = CONF_LEVELS.map((lv) => {
       const [n, right] = s.conf[lv];
@@ -1696,8 +1760,11 @@ const BestGuessEngine = (() => {
 
   function renderAbout() {
     $("aboutVersion").textContent = "Version " + APP_VERSION;
+    const age = saved ? E.priceAge(saved.fetched, Date.now()) : "fresh";
     $("ckSaved").textContent = saved
       ? saved.coins.length + " coins, updated " + ago(saved.fetched) + " (" + when(saved.fetched) + ")."
+        + (age === "paused" ? " Out of date, so forecasts are paused. They normally update every 6 hours."
+          : age === "old" ? " Out of date: they normally update every 6 hours." : "")
       : "Not working: " + (savedError || "still loading.");
     const l = state.live;
     $("ckLive").textContent =
@@ -1882,7 +1949,7 @@ const BestGuessEngine = (() => {
    times to check what comes back when the app is opened again. It uses its own storage, never your real coins. */
 (function () {
   "use strict";
-  const VERSION = "1.0.0";
+  const VERSION = "1.1.0";
   const KEY = "best-guess-selftest-v1";
   const REAL_KEY = "best-guess-v1";
   const SITE = "https://bestguess-apps.github.io/best-guess/";
@@ -2278,9 +2345,13 @@ const BestGuessEngine = (() => {
         }
         if (!changes) run.notes.push("This time zone has no daylight saving changes, so those dates weren't tried here");
         const row = q('#todayBody [data-coin="' + dated + '"]');
+        // These moments are months from the made-up prices' date, so the app would pause forecasts for old
+        // prices (checked in "Other prices files"). Only the date's wording is checked here, so that's held off too.
+        const realAge = E.priceAge;
         for (const ms of moments) {
           Date.now = () => ms;
-          try { row.click(); } finally { Date.now = realNow; }
+          E.priceAge = () => "fresh";
+          try { row.click(); } finally { Date.now = realNow; E.priceAge = realAge; }
           const want = localWeekOut(ms), got = txt(q("#coinBody .nums dt")).replace("Best guess for ", "");
           run.steps++; checked++;
           if (got !== want) fail("Forecast date on " + new Date(ms).toString().slice(0, 21) + ": showed “" + got + "”, expected “" + want + "”");
@@ -2302,6 +2373,13 @@ const BestGuessEngine = (() => {
         if (!s.leans) expect(label + ": leans", leans[1], "No leans");
         else if (luck(s) === "few") { expect(label + ": leans", leans[1], outOf(s.right, s.leans)); ok(label + ": says too few to tell", /^Too few leans to tell\. It takes at least 10, from 4 separate weeks\./.test(leans[2] || "")); }
         else { expect(label + ": leans right", leans[1], share(s.right, s.leans) + " (" + outOf(s.right, s.leans) + ")"); expect(label + ": verdict", leans[2], "A coin flip gets 50%. " + luckWords(s)); }
+        // The easy guess, worked out here: whichever way more of these leans' prices went ("up" on a tie). Shown only next to a percentage.
+        let easy;
+        if (s.leans && luck(s) !== "few" && Number.isInteger(s.rose)) {
+          const up = 2 * s.rose >= s.leans, r = up ? s.rose : s.leans - s.rose;
+          easy = "Just saying “" + (up ? "up" : "down") + "” every time on these same days was right " + share(r, s.leans) + " (" + outOf(r, s.leans) + "). In a market that mostly moves one way, that's the easy bar to beat.";
+        }
+        expect(label + ": the easy guess", leans[3], easy);
         expect(label + ": coin flips", (st[1] || [])[1], share(s.flips, s.n) + " (" + outOf(s.flips, s.n) + " calls)");
         const lv = (n, r, name) => name + ": " + (!n ? "no leans" : n < 10 ? outOf(r, n) + " right, too few to tell" : share(r, n) + " right (" + outOf(r, n) + ")");
         expect(label + ": by confidence", (st[2] || []).slice(1, 4).join(" | "), [lv(s.conf.low[0], s.conf.low[1], "Low"), lv(s.conf.medium[0], s.conf.medium[1], "Medium"), lv(s.conf.high[0], s.conf.high[1], "High")].join(" | "));
@@ -2429,7 +2507,42 @@ const BestGuessEngine = (() => {
       const before = rowIds("todayBody").join(",");
       await refreshWith("damaged", 116);
       expect("A damaged prices file keeps the prices you already had", rowIds("todayBody").join(","), before);
+
+      // A record from before 1.1.0 (no easy-guess count) still shows; a coin whose count doesn't add up is left out
+      await refreshWith("oldrecord", 115.9);
+      tab("record");
+      ok("An older track record still shows", /Leans that were right/.test(txt($("recordBody"))));
+      ok("An older track record: no easy guess", !/Just saying/.test(txt($("recordBody"))));
+      expect("A coin whose easy-guess count doesn't add up isn't used", txt(q('#recordBody details[data-rec="' + coins[4].id + '"] .csym')), "No track record yet");
+      tab("today");
+
+      // Old saved prices (the price updates stopped): a warning at 2 days, even with live prices; forecasts pause at 7
+      await refreshWith("good", 3 * 1440);
+      const topLine = () => txt($("statusText"));
+      ok("Prices 3 days old: a warning at the top", $("status").classList.contains("warn") && /^Saved prices are from 3 days ago\. Forecasts may be off until they update\./.test(topLine()));
+      ok("Prices 3 days old: the warning shows with live prices on", /Live prices checked/.test(topLine()) || /Checking live prices/.test(topLine()));
+      ok("Prices 3 days old: forecasts still show", rowIds("todayBody").length > 0 && rowIds("todayBody").every((id) => /^7-day lean: (up|down|coin flip|no forecast)/.test(txt(q('#todayBody [data-coin="' + id + '"] .lean')))));
+      click($("aboutBtn"));
+      ok("Prices 3 days old: Data check says so", / Out of date: they normally update every 6 hours\.$/.test(txt($("ckSaved"))));
+      closeSheet();
+      await refreshWith("good", 8 * 1440);
+      ok("Prices 8 days old: the top says forecasts are paused", $("status").classList.contains("warn") && /^Saved prices are from 8 days ago\. Forecasts are paused until they update\./.test(topLine()));
+      ok("Prices 8 days old: every coin's lean is paused", rowIds("todayBody").length > 0 && rowIds("todayBody").every((id) => txt(q('#todayBody [data-coin="' + id + '"] .lean')) === "7-day lean: paused, prices are old"));
+      click(q("#todayBody .coin"));
+      expect("Prices 8 days old: a forecast says it's paused", txt(q("#coinBody .leanbig")), "Forecast paused");
+      scan("A paused forecast");
+      closeSheet();
+      tab("look");
+      ok("Prices 8 days old: Worth a look is paused", /^Worth a look is paused\./.test(txt($("lookBody"))));
+      tab("record");
+      ok("Prices 8 days old: the Track record still shows", /Leans that were right/.test(txt($("recordBody"))));
+      click($("aboutBtn"));
+      ok("Prices 8 days old: Data check says so", / Out of date, so forecasts are paused\. They normally update every 6 hours\.$/.test(txt($("ckSaved"))));
+      scan("Old prices");
+      closeSheet();
+      tab("today");
       await refreshWith("good", 115);
+      ok("Fresh prices again: no warning", !$("status").classList.contains("warn") && !/Saved prices are from/.test(topLine()));
       click($("aboutBtn"));
       ok("Back to good prices: Data check", /^25 coins, updated 2 hours ago/.test(txt($("ckSaved"))) && /^Ready: 2,250 past calls checked, for 25 coins\.$/.test(txt($("ckRecord"))));
       scan("About");

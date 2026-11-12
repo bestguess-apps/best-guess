@@ -53,7 +53,7 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
   - **The cap on confidence:** leans right under 50% means Low at most; under 55% (the odds a lean needs) means no High. It goes by the coin's own leans when there are enough, otherwise by all coins together, and does nothing when neither has enough. It only lowers confidence, and never changes the lean or the odds.
   - **"Leans by confidence" shows the look-alikes' own ratings,** before the cap. Capping inside the replay would need a track record of the track record, and a year of prices is too short for that. The screen says so.
   - **A lean is right** when the price ended on its side 7 days later (a down lean counts if it didn't end higher). "How far off" is the average gap from the real price, as a share of the price on the day of the call.
-  - **Coin flip is the only yardstick for leans.** Not shown: how often prices simply rose in those 90 days, which would help read a one-sided market. Could be added later.
+  - **Coin flip was the only yardstick for leans until 1.1.0.** How often prices simply rose would help read a one-sided market, so 1.1.0 added the easy guess (see below).
 - **Worth a look (stage 4), and why:**
   - **All 25 coins, not just the watchlist** (the owner's pick): that's what makes the tab different from Today. It uses the saved prices for coins off the watchlist; the live check still asks only about the watchlist, so nothing new leaves the phone.
   - **The bar** (the owner's picks): medium or high confidence after the track record's cap, and past leans right at least 55% of the time, going by the coin's own leans when there are enough, otherwise all coins together. No track record to test against means no picks. Up to 3, strongest first (confidence, then odds).
@@ -71,6 +71,16 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
   - **Dates:** the forecast date is tried at month ends, leap days, and the 8 days before each daylight saving change in the phone's own time zone (none in zones without daylight saving; a release runs it in several zones in headless Chrome).
   - **Copy report, no email** (the owner's pick): friends and family send it to the person who shared the app. The report holds the browser, system, screen size and time zone, nothing about anyone's coins.
   - **The About link opens in the same window,** not a new tab like Till Payday's: on an iPhone Home Screen app a new tab opens in Safari, with Safari's storage and offline copy, so the test would check the wrong place.
+- **Old prices (1.1.0), and why:**
+  - **The gap it closes:** GitHub pauses scheduled runs in public repos after 60 days without changes. Before 1.1.0, if that happened, forecasts kept running on old price history while the live check still said "Live prices," so nobody would notice.
+  - **A keepalive job in Publish** (the owner's pick of a fix with a backup): once a day (the 00:17 UTC run, and on Run workflow) it turns the Publish workflow on again through GitHub's API, which starts the 60-day count over. GitHub doesn't document that; it's how other keep-alive tools work. Its own job only, with `actions: write`, no checkout, no outside actions, just the `gh` tool on the runner. Not picked: empty "keep-alive" commits (a bot author would trip the monthly sweep and push-check, and they'd clutter history) and third-party keep-alive actions (supply chain).
+  - **The warning is the backup** (the owner's pick: warn, then pause after a week): `priceAge()` in the engine says fresh, old (2 days or more: a yellow warning at the top, even when live prices work, plus a line in Data check) or paused (7 days or more). Paused means no forecasts and no Worth a look, because a forecast adds today's price to the saved daily history and would treat a week's move as one day's. The Track record still shows: it's about the past. A date in the future (a phone clock that's off) counts as fresh.
+  - **The self-test holds the pause off in its Dates step:** those moments are months from the made-up prices' date, and only the date's wording is checked there. The pause itself is checked in "Other prices files".
+- **The easy guess (1.1.0), and why:**
+  - **The owner's pick: the easy guess, shown only.** Next to "Leans that were right" (all coins, and each coin, when there are enough leans to give a percentage) the Track record shows how often saying the same thing every time would have been right on the same days. It takes whichever way more of those prices went ("up" on a tie), so it's the stronger of the two plain guesses. That fills the gap noted at stage 3: in a one-sided market, beating a coin flip is easy.
+  - **Shown only:** it doesn't change verdicts, the confidence cap or Worth a look. "Also stricter picks" was offered and not picked; it would need its own tuning tests.
+  - **Counted on the lean calls, not all calls,** so it compares like with like: `rose` in each score is how many lean calls ended higher (a down lean is right when the price didn't end higher, so saying "down" every time is right `leans - rose` times).
+  - **`rose` is optional in prices.json:** older app copies ignore it (they build scores from known fields only), and this version shows no easy-guess line for a file without it. When it's there, it must be a whole number no bigger than the leans, or that score isn't used, like any other count that doesn't add up. The record stays `v: 1`.
 - **Fonts:** the same built-in fonts as Till Payday (Atkinson Hyperlegible, Bricolage Grotesque, DM Mono; SIL Open Font License). Own colors (indigo), contrast computed in code.
 
 ## Known limits
@@ -81,15 +91,19 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 - A coin added from Worth a look shows its saved price until the next live check (at most one a minute).
 - A year of prices holds only about 50 separate weeks, so confidence stays modest on purpose, and most days say "coin flip."
 - GitHub Pages can't set headers, so the lock is a meta tag and `frame-ancestors` (clickjacking) isn't possible.
-- Scheduled runs can be late, and GitHub pauses them in public repos after 60 days without changes (see how-to-update.md).
+- Scheduled runs can be late. GitHub pauses them in public repos after 60 days without changes; the keepalive job should stop that, but it relies on behavior GitHub doesn't document, so the app warns when saved prices get old (see how-to-update.md for the phone steps).
+- The easy guess is shown without a luck test of its own: a few points either way between it and the leans can be chance.
 - CoinGecko says keyless access isn't meant for production, and GitHub's shared runner addresses may get "busy" answers more often. The fetcher waits, retries and falls back to the last good prices.
 
-## Where things stand (Nov 10, 2026)
+## Where things stand (Nov 12, 2026)
 
-- **Live version:** 1.0.0, at https://bestguess-apps.github.io/best-guess/. All five stages are done (the pipes, the forecasting engine, the Track record, Worth a look, and the self-test with the first release). The v1.0.0 tag is on GitHub (added by the tag workflow).
-- **Tested:** on a real iPhone (Nov 10, 2026), the self-test passed all 351 checks on the live site in Safari and again from the Home Screen, with real prices loaded and live prices working, and the owner reported VoiceOver works. The daylight saving dates (the 1.0.0 fix for a forecast date a day off near midnight in the week before a clock change) were checked in headless Chrome only. CHANGELOG.md has each version's details.
-- **Live data from a real phone:** the first Publish run (Nov 10, 02:02 UTC) got all 25 coins with a full year of history from CoinGecko in 26 requests, with no "busy" answers. On a real iPhone, About → Data check then said "Live prices: Working", so CoinGecko allows the live check from a phone browser. Worth a look has been seen on a real phone in both states ("Nothing stands out today", and a pick added with Add to my coins).
+- **Live version:** 1.1.0, at https://bestguess-apps.github.io/best-guess/ (the old-prices warning and pause, the easy guess in the Track record, and the keepalive job). 1.0.0 was the first full release with all five stages.
+- **Tested:** in headless Chrome and Node only so far (CHANGELOG.md has the details). Not yet on a real iPhone at 1.1.0. The keepalive job's first scheduled run is the next 00:17 UTC; until it has run once, it's untested on GitHub.
+- **Earlier:** 1.0.0 passed all 351 self-test checks on a real iPhone (Nov 10, 2026), in Safari and from the Home Screen, with real prices and live prices working, and the owner reported VoiceOver works.
 
 ## Next up
 
-- Nothing is queued. Done so far (Nov 9 to 10, 2026): all five stages, the owner's iPhone run of 1.0.0, the app skills' "Live outside data" section (app-new-project, with Best Guess as the reference), and the org security settings on bestguess-apps and the Usage Saver org.
+- **The owner's iPhone check of 1.1.0** (About → Run self-test on the live site), with these Done when lines:
+  - If prices stop updating, the top of the app tells me within 2 days, even with live prices on. (The self-test checks this with made-up prices 3 and 8 days old.)
+  - In the Track record, I can see how the leans did next to just guessing the same way every time.
+- **Check the keepalive job ran:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.

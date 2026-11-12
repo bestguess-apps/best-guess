@@ -7,7 +7,8 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "17 */6 * * *"   # 00:17, 06:17, 12:17 and 18:17 UTC
+    - cron: "17 0 * * *"         # 00:17 UTC (this run also keeps the schedule on: see the keepalive job)
+    - cron: "17 6,12,18 * * *"   # 06:17, 12:17 and 18:17 UTC
   workflow_dispatch:
 
 permissions: {}
@@ -78,3 +79,24 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # Keeps the schedule above from being paused. GitHub pauses scheduled runs in public repos after
+  # 60 days without changes, and turning a workflow on again (even when it's already on) starts that
+  # count over. That's how other keep-alive tools do it; GitHub doesn't document it, so the app also
+  # warns when its saved prices get old. Runs once a day (the 00:17 run) and on demand. It runs none of
+  # this repo's code and uses only the gh tool that comes with GitHub's runners.
+  keepalive:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '17 0 * * *')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write   # to turn this workflow on again
+    steps:
+      - name: Keep the schedule on
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh api --method PUT "repos/${REPO}/actions/workflows/publish.yml/enable" --silent
+          echo "The Publish schedule is on."

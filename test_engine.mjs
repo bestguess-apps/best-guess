@@ -281,6 +281,8 @@ test("scoring matches a hand count", () => {
   assert.deepEqual(
     { n: s.n, flips: s.flips, leans: s.leans, right: s.right, inRange: s.inRange, weeks: s.weeks, leanWeeks: s.leanWeeks },
     { n: 7, flips: 2, leans: 5, right: 3, inRange: 5, weeks: 4, leanWeeks: 3 });
+  // rose: of the 5 leans, only day 0's price ended higher (100 is flat, not higher; day 21 is a coin flip)
+  assert.equal(s.rose, 1);
   assert.deepEqual(s.conf, { low: [3, 2], medium: [1, 0], high: [1, 1] });
   // misses by hand: best guess 102 and "no change" 100, as a share of the 100 price
   assert.ok(Math.abs(s.missBest - (3 + 7 + 22 + 2 + 2 + 9 + 12) / 700) < 1e-12);
@@ -418,7 +420,7 @@ test("a full 90-day record adds up, coin by coin", () => {
   assert.equal(rec.to, E.dayIso(dayOf(365 - 1 - E.AHEAD)));
   assert.equal(rec.coins.length, 24, "the coin with too little history has no record");
   assert.equal(rec.all.n, 24 * 90);
-  for (const f of ["n", "flips", "leans", "right", "inRange"]) assert.equal(rec.coins.reduce((a, c) => a + c[f], 0), rec.all[f], f);
+  for (const f of ["n", "flips", "leans", "right", "rose", "inRange"]) assert.equal(rec.coins.reduce((a, c) => a + c[f], 0), rec.all[f], f);
   for (const lv of ["low", "medium", "high"]) for (const k of [0, 1]) assert.equal(rec.coins.reduce((a, c) => a + c.conf[lv][k], 0), rec.all.conf[lv][k]);
   for (const s of [rec.all, ...rec.coins]) {
     allFinite(s);
@@ -426,6 +428,7 @@ test("a full 90-day record adds up, coin by coin", () => {
     assert.equal(s.conf.low[0] + s.conf.medium[0] + s.conf.high[0], s.leans);
     assert.equal(s.conf.low[1] + s.conf.medium[1] + s.conf.high[1], s.right);
     assert.ok(s.right <= s.leans && s.inRange <= s.n && s.leanWeeks <= s.weeks && s.weeks <= 13);
+    assert.ok(Number.isInteger(s.rose) && s.rose <= s.leans);
   }
   // nothing to replay: a plain null, never a crash
   assert.equal(E.trackRecord([]), null);
@@ -577,4 +580,60 @@ test("25 forecasts (every coin, for Worth a look) are quick enough for an older 
   E.standouts(list, null);
   const ms = performance.now() - t0;
   assert.ok(ms < 1500, ms.toFixed(0) + " ms");
+});
+
+test("the easy guess takes whichever way happened more, on the same days the leans were made", () => {
+  assert.deepEqual(E.easyGuess({ leans: 10, rose: 7 }), { word: "up", right: 7, of: 10 });
+  assert.deepEqual(E.easyGuess({ leans: 10, rose: 3 }), { word: "down", right: 7, of: 10 });
+  assert.deepEqual(E.easyGuess({ leans: 10, rose: 5 }), { word: "up", right: 5, of: 10 }, "a tie says up, right half the time");
+  // the hand count above: 1 of 5 leans rose, so saying "down" every time was right 4 times
+  const call = (lean, later) => ({ coin: "a", day: 0, lean, confidence: "low", price: 100, low: 90, best: 102, high: 110, later });
+  const s = E.scoreCalls([call("up", 105), call("up", 95), call("down", 80), call("down", 100), call("up", 100), call("flip", 111)]);
+  assert.deepEqual(E.easyGuess(s), { word: "down", right: 4, of: 5 });
+  // nothing to show: no leans, an older file without the count, or counts that don't add up
+  for (const bad of [null, undefined, {}, { leans: 0, rose: 0 }, { leans: 10 }, { leans: 10, rose: null }, { leans: 10, rose: 11 }, { leans: 10, rose: -1 }, { leans: 10, rose: 2.5 }]) {
+    assert.equal(E.easyGuess(bad), null, JSON.stringify(bad));
+  }
+  // it's only shown: verdicts, the cap and the picks don't change with it
+  const a = { n: 40, flips: 0, leans: 40, right: 30, weeks: 8, leanWeeks: 8, inRange: 32, conf: { low: [40, 30], medium: [0, 0], high: [0, 0] }, missBest: 0.05, missFlat: 0.06 };
+  for (const rose of [0, 20, 40]) {
+    const b = Object.assign({}, a, { rose });
+    assert.deepEqual(E.judge(b), E.judge(a));
+    assert.deepEqual(E.capConfidence("high", b, null), E.capConfidence("high", a, null));
+  }
+});
+
+test("old saved prices: a warning at 2 days, forecasts paused at 7, and a bad date counts as fresh", () => {
+  const now = Date.UTC(2026, 10, 12, 12), h = 3600000;
+  assert.equal(E.OLD_DAYS, 2);
+  assert.equal(E.PAUSE_DAYS, 7);
+  assert.equal(E.priceAge(now, now), "fresh");
+  assert.equal(E.priceAge(now - 6 * h, now), "fresh");
+  assert.equal(E.priceAge(now - 48 * h + 1, now), "fresh");
+  assert.equal(E.priceAge(now - 48 * h, now), "old");
+  assert.equal(E.priceAge(now - 7 * 24 * h + 1, now), "old");
+  assert.equal(E.priceAge(now - 7 * 24 * h, now), "paused");
+  assert.equal(E.priceAge(now - 400 * 24 * h, now), "paused");
+  assert.equal(E.priceAge(now + 3 * 24 * h, now), "fresh", "a phone clock that's behind");
+  for (const bad of [NaN, undefined, null, "x", Infinity]) assert.equal(E.priceAge(bad, now), "fresh", String(bad));
+});
+
+test("planted bugs in the easy guess and old prices get caught", () => {
+  const call = (lean, later) => ({ coin: "a", day: 0, lean, confidence: "low", price: 100, low: 90, best: 102, high: 110, later });
+  const calls = [call("up", 105), call("flip", 111), call("flip", 120)];
+  // 1. coin flips counted too: the easy guess would be scored on days the leans weren't made
+  const allDays = planted("if (c.later > c.price) s.rose++;", "");
+  const counted = loadEngine(block.replace('if (c.lean === "flip") { s.flips++; continue; }', 'if (c.later > c.price) s.rose++;\n      if (c.lean === "flip") { s.flips++; continue; }').replace("      if (c.later > c.price) s.rose++;\n      const level", "      const level"));
+  assert.equal(E.scoreCalls(calls).rose, 1);
+  assert.equal(allDays.scoreCalls(calls).rose, 0, "a missing count wasn't caught");
+  assert.notEqual(counted.scoreCalls(calls).rose, 1, "counting coin flips wasn't caught");
+  // 2. a tie that says down
+  const tieDown = planted("const up = s.rose >= s.leans - s.rose;", "const up = s.rose > s.leans - s.rose;");
+  assert.notEqual(tieDown.easyGuess({ leans: 10, rose: 5 }).word, "up", "a tie that says down wasn't caught");
+  // 3. the pause a day late, and no warning at all
+  const lateDay = planted("age >= PAUSE_DAYS * DAY_MS", "age >= (PAUSE_DAYS + 1) * DAY_MS");
+  const noWarn = planted("age < OLD_DAYS * DAY_MS", "age < PAUSE_DAYS * DAY_MS");
+  const now = Date.UTC(2026, 10, 12), d = 864e5;
+  assert.notEqual(lateDay.priceAge(now - 7 * d, now), "paused", "a pause a day late wasn't caught");
+  assert.notEqual(noWarn.priceAge(now - 3 * d, now), "old", "a missing warning wasn't caught");
 });
