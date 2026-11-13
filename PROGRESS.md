@@ -116,4 +116,3 @@ A free crypto forecaster for friends and family. Pick coins from the top 25 and 
 ## Next up
 
 - Both Done when lines for 1.2.0 passed on the owner's iPhone (In short at the top; the $100 line, last week's call and Before you decide further down). The self-test keeps checking all of them.
-- **Check the keepalive job on its daily run:** Actions → Publish → the first run after 00:17 UTC shows a green "keepalive" job.
